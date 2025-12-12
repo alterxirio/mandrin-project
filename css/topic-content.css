@@ -1,0 +1,8 @@
+.main{
+    margin: 0% 8% ;
+}
+.top{
+    margin: 4% 0%;
+    display: flex;
+    justify-content: space-between;
+}
