@@ -1,0 +1,129 @@
+    /* Reset */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Body & Centering */
+   body {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    background: #ffffff;
+}
+
+/* Center .main */
+.main {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* center both vertically and horizontally */
+    display: flex;
+    width: 70%;
+    max-width: 1200px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+}
+
+    /* Right side - visual area */
+    .right {
+        flex: 1; /* flexible width */
+        background: linear-gradient(135deg, #FF7E5F, #FEB47B); /* keep gradient */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 1.2rem;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    /* Left side - form */
+    .left {
+        padding: 60px 50px; /* enough space for inputs */
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 40%;
+    }
+
+    .left-top h3 {
+        font-family: 'Dancing Script', cursive;
+        font-size: 40px;
+        margin-bottom: 10px;
+        color: #B71C1C; /* primary color */
+    }
+
+    .left-top p {
+        font-size: 16px;
+        color: #666;
+    }
+
+    /* Form */
+    form {
+        margin-top: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #444;
+        text-align: start;
+    }
+
+    input {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        font-size: 16px;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #B71C1C;
+        box-shadow: 0 0 5px rgba(183, 28, 28, 0.3);
+    }
+
+    /* Button */
+    button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 25px;
+        border: none;
+        background: #B71C1C;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4);
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+        .main {
+            flex-direction: column;
+            width: 80vw; /* 80% of screen width */
+        }
+        .left {
+            width: 100%;
+            padding: 40px 20px;
+        }
+        .right {
+            display: none; /* hide right section on mobile */
+        }
+    }

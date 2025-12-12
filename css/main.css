@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.main{
+    margin: 0% 8% ;
+}
+.top{
+    margin: 4% 0%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);   /* 3 cards per row */
+    gap: 30px;
+    padding: 20px;
+}
+
+.gc-card {
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.gc-card:hover {
+    transform: translateY(-5px);
+}
+
+.gc-banner img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.gc-body {
+    padding: 15px;
+    flex: 1;
+    text-align: start;
+}
+
+.gc-body h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.gc-footer {
+    padding: 12px 15px;
+    background: #f3f3f3;
+    font-size: 14px;
+    color: #333;
+    border-top: 1px solid #e5e5e5;
+}
+
+.add{
+    padding: 15px;
+    flex: 1;
+    text-align: center!important
+}
+
+/* Container for buttons */
+.card-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;  /* space between delete & edit */
+    z-index: 2;
+}
+
+/* Edit Button (gold) */
+.edit-btn {
+    background-color: gold;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: 0.2s;
+}
+
+.edit-btn:hover {
+    transform: scale(1.1);
+}
+
+.edit-btn .material-icons {
+    font-size: 20px;
+    color: white;
+}
+
+/* Delete Button (red) */
+.delete-btn {
+    background-color: #e53935; /* red */
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    transform: scale(1.1);
+}
+
+.delete-btn .material-icons {
+    font-size: 20px;
+    color: white;
+}
+
+
+@media (max-width: 600px) {
+    .card-container {
+        grid-template-columns: 1fr;   /* ⭐ 1 card per row */
+        gap: 15px;
+        padding: 10px;
+    }
+
+    .gc-banner img {
+        height: 100px;  /* adjust for mobile */
+    }
+
+    .gc-body h2 {
+        font-size: 18px;
+    }
+    
+}
+
