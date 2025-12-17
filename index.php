@@ -29,12 +29,12 @@
                     <form action="./backend/loginBackend.php" method="post" >
 
                         <label for="">Angka Giliran</label>
-                        <input type="text" name="username" placeholder="" >
+                        <input type="text" name="username" placeholder="" value="BKV0425KA008" >
 
                         <br>
 
                         <label for="">Kata Laluan</label>
-                        <input type="password" name="password" placeholder="" >
+                        <input type="password" name="password" placeholder="" value="0465">
 
                         <br>
 

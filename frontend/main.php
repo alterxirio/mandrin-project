@@ -50,14 +50,19 @@
                         <div class="gc-card">
 
                             <!-- Delete & Edit Buttons Top-Right -->
-                            <div class="card-buttons">
-                                <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" >
-                                    <span class="material-icons">delete</span>
-                                </button>
-                                <button class="edit-btn" type="button" title="Edit" data-modal-target="edit-modal"  data-id="<?php echo $row['topik']; ?>">
-                                    <span class="material-icons">edit</span>
-                                </button>
-                            </div>
+                            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+
+                                <div class="card-buttons">
+                                    <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" >
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                    <button class="edit-btn" type="button" title="Edit" data-modal-target="edit-modal"  data-id="<?php echo $row['topik']; ?>">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                </div>
+
+                            <?php } ?>
+
 
                             <!-- Top Banner -->
                             <div class="gc-banner">
@@ -86,7 +91,7 @@
                 ?>
 
                 <?php
-                    if($_SESSION['role'] == "Pelajar"){
+                    if($_SESSION['role'] == "Pensyarah"){
                         ?>
                         <button data-modal-target="static-modal" data-modal-toggle="static-modal" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" type="button">
                             <div class="gc-card" style="background-color:#B71C1C;">

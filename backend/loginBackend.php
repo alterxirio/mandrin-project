@@ -1,5 +1,7 @@
 <?php
 
+session_destroy();
+
 include("../config/config.php");
 // session_start();
 
