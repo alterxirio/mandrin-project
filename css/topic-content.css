@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
+.hidden {
+    display: none!important
+}
 
 .main {
     margin: 0% 8%;
@@ -88,7 +90,7 @@
 }
 
 /* Buttons */
-.edit-btn, .delete-btn {
+.edit-btn, .delete-btn,.edit-dialogue-btn {
     border: none;
     border-radius: 50%;
     width: 34px;
@@ -104,7 +106,9 @@
 .edit-btn {
     background-color: gold;
 }
-
+.edit-dialogue-btn{
+    background-color: gold;
+}
 .delete-btn {
     background-color: #e53935;
 }
@@ -116,6 +120,18 @@
 .material-icons {
     font-size: 18px;
     color: white;
+}
+
+.relative div.absolute {
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #ccc; /* same as bubble bg */
+    position: absolute;
+    left: 0;
+    top: 0.5rem; /* vertical alignment */
+    transform: translateX(-0.5rem);
 }
 
 /* Tablet */

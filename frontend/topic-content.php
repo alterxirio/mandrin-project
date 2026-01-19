@@ -1,305 +1,562 @@
-    <?php
-        include("../config/config.php");
+<?php
 
-        if (isset($_POST['ajax_edit'])) {
+    include("../config/config.php");
 
-            $id = (int)$_POST['word_id'];
+    if (isset($_POST['ajax_edit'])) {
 
-            $sql = "SELECT * FROM words WHERE id = $id";
-            $query = mysqli_query($con, $sql);
-            $data = mysqli_fetch_assoc($query);
+        $id = (int)$_POST['word_id'];
 
-            echo json_encode($data);
-            exit;
-        }
-    ?>
+        $sql = "SELECT * FROM words WHERE id = $id";
+        $query = mysqli_query($con, $sql);
+        $data = mysqli_fetch_assoc($query);
 
-    <?php session_start(); ?>
-    <?php include("../config/config.php"); ?>
+        echo json_encode($data);
+        exit;
+    }
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Word Page</title>
+    if (isset($_POST['ajax_edit_dialogue'])) {
 
-        <link rel="stylesheet" href="../css/topic-content.css">
-        <?php include("header.php"); ?>
+        $id = (int)$_POST['dialogue_id'];
 
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    </head>
+        $sql = "SELECT * FROM dialogues WHERE id = $id";
+        $query = mysqli_query($con, $sql);
+        $data = mysqli_fetch_assoc($query);
 
-    <body>
-    <?php include("navbar.php"); ?>
+        echo json_encode($data);
+        exit;
+    }   
+?>
 
-    <div class="main">
+<?php session_start(); ?>
+<?php include("../config/config.php"); ?>
 
-        <div class="top">
-            <p>你好 <b><?php echo $_SESSION['name']; ?></b></p>
-            <p><?php echo date('j/M/Y'); ?></p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Page</title>
 
-        <div class="mid">
+    <link rel="stylesheet" href="../css/topic-content.css">
+    <?php include("header.php"); ?>
 
-            <!-- Vertical Menu -->
-            <div class="mid-header vertical-menu">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+
+<body>
+<?php include("navbar.php"); ?>
+
+<div class="main">
+
+    <div class="top">
+        <p>你好 <b><?php echo $_SESSION['name']; ?></b></p>
+        <p><?php echo date('j/M/Y'); ?></p>
+    </div>
+
+    <div class="mid">
+
+        <!-- Vertical Menu -->
+        <div class="mid-header vertical-menu">
+
+            <button id="btnWord">
                 <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
-                    <button>
                         <span class="material-symbols-outlined">menu_book</span>
-                    </button>
                 </div>
+            </button>
 
+            <button id="btnDialogue" >
                 <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
-                    <button>
                         <span class="material-symbols-outlined">chat_bubble</span>
-                    </button>
                 </div>
-            </div>
+            </button>
 
-            <?php
+        </div>
+
+        <?php
+        $topik_id = $_GET['id'];
+        $sql = "SELECT * FROM words WHERE topic_id = $topik_id";
+        $result = mysqli_query($con, $sql);
+        ?>
+
+        <!-- Word Grid -->
+        <div class="word-container  " id="wordContainer">
+
+            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                <div class="word-card">
+
+                    <!-- Card Header -->
+                    <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+
+                        <div class="word-card-header">
+                            <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
+                                <span class="material-icons">delete</span>
+                            </button>
+
+                            <button class="edit-btn" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
+                                <span class="material-icons">edit</span>
+                            </button>
+                        </div>
+
+                    <?php } ?>
+
+                    <!-- Card Body -->
+                    <button class="word-btn" onclick="playAudio('<?php echo $row['audio_path']; ?>')">
+                        <span><?php echo $row['pinyin']; ?></span>
+                        <p><b><?php echo $row['chinese']; ?></b></p>
+                    </button>
+
+                </div>
+            <?php } ?>
+
+            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                <button data-modal-target="static-modal" data-modal-toggle="static-modal" class="word-btn add-word-btn" style="border-radius: 22px;">+</button>
+            <?php } ?>
+
+        </div>
+
+        <?php
             $topik_id = $_GET['id'];
-            $sql = "SELECT * FROM words WHERE topic_id = $topik_id";
-            $result = mysqli_query($con, $sql);
-            ?>
+            $sql = "SELECT * FROM dialogues WHERE topic_id = $topik_id";
+            $dialogue = mysqli_query($con, $sql);
+        ?>
 
-            <!-- Word Grid -->
-            <div class="word-container">
+        <div class="dialogue-container hidden" id="dialogueContainer">
+            <div class="p-6 bg-white rounded-lg shadow space-y-6">
 
-                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <div class="word-card">
+                <?php while ($row = mysqli_fetch_assoc($dialogue)) { ?>
 
-                        <!-- Card Header -->
-                        <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                    <div class="flex items-start space-x-4">
+                        <!-- Avatar -->
+                        <div class="flex-shrink-0">
+                            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">A</div>
+                        </div>
 
-                            <div class="word-card-header">
-                                <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
-                                    <span class="material-icons">delete</span>
+                        <!-- Bubble -->
+                        <div class="relative bg-gray-100 rounded-2xl p-6 w-5/6 text-lg flex flex-col">
+                            <!-- Text -->
+                            <p class="mb-4"><?php echo $row['chinese_text']; ?></p>
+
+                            <!-- Button aligned bottom-right -->
+                            <div class="self-end flex">
+
+                                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+
+                                    <button class="delete-btn mr-3" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+
+                                    <button class="edit-dialogue-btn mr-3" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+
+                                <?php } ?>
+
+
+                                <button onclick="playAudio('<?php echo $row['audio_path']; ?>')" 
+                                        class="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-6.518-3.76A1 1 0 007 8.243v7.514a1 1 0 001.234.97l6.518-1.88a1 1 0 00.752-.97v-3.64a1 1 0 00-.752-.97z"/>
+                                    </svg>
                                 </button>
 
-                                <button class="edit-btn" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
-                                    <span class="material-icons">edit</span>
-                                </button>
                             </div>
-
-                        <?php } ?>
-
-                        <!-- Card Body -->
-                        <button class="word-btn" onclick="playAudio('<?php echo $row['audio_path']; ?>')">
-                            <span><?php echo $row['pinyin']; ?></span>
-                            <p><b><?php echo $row['chinese']; ?></b></p>
-                        </button>
-
+                        </div>
                     </div>
-                <?php } ?>
 
-                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                    <button data-modal-target="static-modal" data-modal-toggle="static-modal" class="word-btn add-word-btn" style="border-radius: 22px;">+</button>
                 <?php } ?>
 
             </div>
 
+            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" class="word-btn add-word-btn mt-8" style="border-radius: 22px;">+</button>
+            <?php } ?>
+
         </div>
+
     </div>
+</div>
 
-    <div id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
-        <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
-            <!-- Modal content -->
-            <div class="relative bg-white rounded-lg py-5 shadow-sm">
-                <!-- Modal header -->
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
-                    <h3 class="text-xl font-semibold text-gray-900">
-                        Perkataan Baharu
-                    </h3>
-                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="static-modal">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                        </svg>
-                        <span class="sr-only">Close modal</span>
-                    </button>
-                </div>
-                <!-- Modal body -->
-                <section>
-                    <div class="py- px- mx-auto w-3/4 lg:py-13">
-                        <form action="../backend/topic-contentBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
 
-                            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-                                <div class="sm:col-span-2">
-                                    <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Karakter Mandarin</label>
-                                    <input type="text" name="add_name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
-                                    <input type="text" name="add_pinyin" id="brand" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Pinyin" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
-                                    <input type="text" name="add_meaning" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Maksud" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
-                                    <input type="file" accept="audio/mp3" name="add_audio" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
-                                </div>
+<div id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Perkataan Baharu
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="static-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <section>
+                <div class="py- px- mx-auto w-3/4 lg:py-13">
+                    <form action="../backend/topic-content-wordBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
+
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                            <div class="sm:col-span-2">
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Karakter Mandarin</label>
+                                <input type="text" name="add_name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
                             </div>
-                            <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
-                                Tambah Perkataan
-                            </button>
-                        </form>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </div>
-
-    <!-- edit -->
-    <div id="edit-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
-        <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
-            <!-- Modal content -->
-            <div class="relative bg-white rounded-lg py-5 shadow-sm">
-                <!-- Modal header -->
-                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
-                    <h3 class="text-xl font-semibold text-gray-900">
-                        Sunting Perkataan
-                    </h3>
-                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center close-btn" data-modal-hide="edit-modal">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                        </svg>
-                        <span class="sr-only">Close modal</span>
-                    </button>
-                </div>
-                <!-- Modal body -->
-                <section>
-                    <div class="py- px- mx-auto w-3/4 lg:py-13">
-                        <form action="../backend/topic-contentBE.php?topik_id=<?php echo $_GET['id']?>" method="post" enctype="multipart/form-data">
-                            <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
-                                <div class="sm:col-span-2">
-                                    <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Karakter Mandarin</label>
-                                    <input type="text" name="edit_name" id="edit_nama" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Nama Topik" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
-                                    <input type="text" name="edit_pinyin" id="edit_pinyin" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
-                                    <input type="text" name="edit_meaning" id="edit_meaning" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Pinyin" required="">
-                                </div>
-                                <div class="w-full">
-                                    <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
-                                    <input type="file" accept="audio/mp3" name="edit_audio" id="edit_price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="18">
-                                </div>
-
-                                <input type="hidden" name="edit_id" id="edit_id">
-
+                            <div class="w-full">
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
+                                <input type="text" name="add_pinyin" id="brand" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Pinyin" required="">
                             </div>
-                            <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
-                                Sunting Perkataan
-                            </button>
-                        </form>
-                    </div>
-                </section>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
+                                <input type="text" name="add_meaning" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Maksud" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
+                                <input type="file" accept="audio/mp3" name="add_audio" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
+                            Tambah Perkataan
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- edit -->
+<div id="edit-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Sunting Perkataan
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center close-btn" data-modal-hide="edit-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <section>
+                <div class="py- px- mx-auto w-3/4 lg:py-13">
+                    <form action="../backend/topic-content-wordBE.php?topik_id=<?php echo $_GET['id']?>" method="post" enctype="multipart/form-data">
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                            <div class="sm:col-span-2">
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Karakter Mandarin</label>
+                                <input type="text" name="edit_name" id="edit_nama" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Nama Topik" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
+                                <input type="text" name="edit_pinyin" id="edit_pinyin" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
+                                <input type="text" name="edit_meaning" id="edit_meaning" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Pinyin" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
+                                <input type="file" accept="audio/mp3" name="edit_audio" id="edit_price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="18">
+                            </div>
+
+                            <input type="hidden" name="edit_id" id="edit_id">
+
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
+                            Sunting Perkataan
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div id="delete-modal" tabindex="-1" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow-sm">
+                <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="delete-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-4 md:p-5 text-center">
+                    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">Anda pasti ingin memadam perkataan ini?</h3>
+                    <button id="confirm-delete" data-modal-hide="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                        Ya, Saya Pasti
+                    </button>
+                    <button data-modal-hide="delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                        Tidak, Batalkan
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="delete-modal" tabindex="-1" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
-            <div class="relative p-4 w-full max-w-md max-h-full">
-                <div class="relative bg-white rounded-lg shadow-sm">
-                    <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="delete-modal">
-                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                        </svg>
-                        <span class="sr-only">Close modal</span>
-                    </button>
-                    <div class="p-4 md:p-5 text-center">
-                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                        </svg>
-                        <h3 class="mb-5 text-lg font-normal text-gray-500">Anda pasti ingin memadam perkataan ini?</h3>
-                        <button id="confirm-delete" data-modal-hide="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-                            Ya, Saya Pasti
-                        </button>
-                        <button data-modal-hide="delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
-                            Tidak, Batalkan
-                        </button>
-                    </div>
-                </div>
+<div id="new-dialogue-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Dialog Baharu
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="new-dialogue-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
             </div>
+            <!-- Modal body -->
+            <section>
+                <div class="py- px- mx-auto w-3/4 lg:py-13">
+                    <form action="../backend/topic-content-dialogueBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
+
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                            <div class="sm:col-span-2">
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Dialog Mandarin</label>
+                                <input type="text" name="add_dialogue" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
+                                <input type="text" name="add_pinyinDialogue" id="brand" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Pinyin" required="">
+                            </div>
+                            <div>
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Nama Karakter</label>
+                                <select id="category" name="add_character" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                                    <option selected="">Pilih Nama Karakter</option>
+                                    <option value="TV">TV/Monitors</option>
+                                    <option value="PC">PC</option>
+                                    <option value="GA">Gaming/Console</option>
+                                    <option value="PH">Phones</option>
+                                </select>
+                            </div>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
+                                <input type="text" name="add_meaningDialogue" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Maksud" required="">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
+                                <input type="file" accept="audio/mp3" name="add_audioDialogue" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
+                            Tambah Dialog
+                        </button>
+                    </form>
+                </div>
+            </section>
         </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
-    <script>
+<div id="edit-dialogue-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-3/4 portrait:w-full max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Dialog Baharu
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dialogue-closeBtn" data-modal-hide="edit-dialogue-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <section>
+                <div class="py- px- mx-auto w-3/4 lg:py-13">
+                    <form action="../backend/topic-content-dialogueBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
 
-        let currentAudio = null;
+                     <input type="hidden" name="edit_dialogue_id" id="edit_dialogue_id">
 
-        function playAudio(path) {
-            if (!path) return;
+                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                            <div class="sm:col-span-2">
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Dialog Mandarin</label>
+                                <input type="text" name="edit_dialogue" id="edit_dialogue" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Mandarin" required="">
+                            </div>
+                            <div class="w-full">
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Pinyin</label>
+                                <input type="text" name="edit_pinyinDialogue" id="edit_pinyinDialogue" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Karakter Pinyin" required="">
+                            </div>
+                            <div>
+                                <label for="brand" class="block mb-2 text-sm font-medium text-gray-900">Nama Karakter</label>
+                                <select id="edit_character" name="edit_character" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                                    <option selected="">Pilih Nama Karakter</option>
+                                    <option value="TV">TV/Monitors</option>
+                                    <option value="PC">PC</option>
+                                    <option value="GA">Gaming/Console</option>
+                                    <option value="PH">Phones</option>
+                                </select>
+                            </div>
+                            <div class="w-full">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">Maksud</label>
+                                <input type="text" name="edit_meaningDialogue" id="edit_meaningDialogue" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Masukkan Maksud" required="">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="price" class="block mb-2 text-sm font-medium text-gray-900">audio</label>
+                                <input type="file" accept="audio/mp3" name="edit_audioDialogue" id="edit_audioDialogue" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" >
+                            </div>
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-primary-200 hover:bg-primary-800" style="background-color: #D32F2F;">
+                            Tambah Dialog
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
 
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
+<script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+<script>
 
-            currentAudio = new Audio(path);
-            currentAudio.play();
+    let currentAudio = null;
+
+    function playAudio(path) {
+        if (!path) return;
+
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
         }
 
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
+        currentAudio = new Audio(path);
+        currentAudio.play();
+    }
 
-                let wordId = this.dataset.id;
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
 
-                fetch(window.location.href, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: "ajax_edit=1&word_id=" + wordId
-                })
-                .then(res => res.json())
-                .then(data => {
+            let wordId = this.dataset.id;
 
-                    document.getElementById("edit_nama").value = data.chinese;
-                    document.getElementById("edit_pinyin").value = data.pinyin;
-                    document.getElementById("edit_meaning").value = data.meaning;
+            fetch(window.location.href, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "ajax_edit=1&word_id=" + wordId
+            })
+            .then(res => res.json())
+            .then(data => {
 
-                    document.getElementById("edit_id").value = data.id;
+                document.getElementById("edit_nama").value = data.chinese;
+                document.getElementById("edit_pinyin").value = data.pinyin;
+                document.getElementById("edit_meaning").value = data.meaning;
 
-                    const modal = new Modal(document.getElementById('edit-modal'));
-                    modal.show();
-                });
-            });
-        });
+                document.getElementById("edit_id").value = data.id;
 
-        document.querySelectorAll('.close-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-
-                // Use Flowbite modal
                 const modal = new Modal(document.getElementById('edit-modal'));
-                modal.hide();
-
+                modal.show();
             });
         });
+    });
 
-        document.querySelectorAll('[data-modal-toggle="delete-modal"]').forEach(button => {
-            button.addEventListener('click', function() {
-                let userId = this.getAttribute('data-id'); // Get user ID
-                let topicId = this.getAttribute('data-topic-id'); // Get user ID
-                document.getElementById('confirm-delete').setAttribute('data-id', userId); // Store in modal
-                document.getElementById('confirm-delete').setAttribute('data-topic-id', topicId); // Store in modal
 
-            });
+
+
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+
+            // Use Flowbite modal
+            const modal = new Modal(document.getElementById('edit-modal'));
+            modal.hide();
+
         });
+    });
 
-        document.getElementById('confirm-delete').addEventListener('click', function() {
-            let userId = this.getAttribute('data-id'); // Retrieve stored ID
-            let topicId = this.getAttribute('data-topic-id'); // Retrieve stored ID
-            window.location.href = '../backend/topic-contentBE.php?delete-id=' + userId+"&topic-id=" + topicId; // Redirect with ID
-                
+    document.querySelectorAll('[data-modal-toggle="delete-modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            let userId = this.getAttribute('data-id'); // Get user ID
+            let topicId = this.getAttribute('data-topic-id'); // Get user ID
+            document.getElementById('confirm-delete').setAttribute('data-id', userId); // Store in modal
+            document.getElementById('confirm-delete').setAttribute('data-topic-id', topicId); // Store in modal
+
         });
+    });
 
-    </script>
+    document.getElementById('confirm-delete').addEventListener('click', function() {
+        let userId = this.getAttribute('data-id'); // Retrieve stored ID
+        let topicId = this.getAttribute('data-topic-id'); // Retrieve stored ID
+        window.location.href = '../backend/topic-content-wordBE.php?delete-id=' + userId+"&topic-id=" + topicId; // Redirect with ID
+            
+    });
 
-    </body>
-    </html>
+
+
+    const btnWord = document.getElementById("btnWord");
+    const btnDialogue = document.getElementById("btnDialogue");
+
+    const wordContainer = document.getElementById("wordContainer");
+    const dialogueContainer = document.getElementById("dialogueContainer");
+
+    btnWord.addEventListener("click", () => {
+        wordContainer.classList.remove("hidden");
+        dialogueContainer.classList.add("hidden");
+    });
+
+    btnDialogue.addEventListener("click", () => {
+        dialogueContainer.classList.remove("hidden");
+        wordContainer.classList.add("hidden");
+    });
+
+
+
+    document.querySelectorAll('.edit-dialogue-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        let dialogueId = this.dataset.id;
+
+        fetch(window.location.href, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "ajax_edit_dialogue=1&dialogue_id=" + dialogueId
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            // Fill dialogue edit modal
+            document.getElementById("edit_dialogue").value = data.chinese_text;
+            document.getElementById("edit_pinyinDialogue").value = data.pinyin_text;
+            document.getElementById("edit_meaningDialogue").value = data.meaning;
+            document.getElementById("edit_character").value = data.character_name;
+            document.getElementById("edit_dialogue_id").value = data.id;
+
+            const modal = new Modal(document.getElementById('edit-dialogue-modal'));
+            modal.show();
+        });
+    });
+});
+
+document.querySelectorAll('.dialogue-closeBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        // Use Flowbite modal
+        const modal = new Modal(document.getElementById('edit-dialogue-modal'));
+        modal.hide();
+
+    });
+});
+
+
+</script>
+
+</body>
+</html>
