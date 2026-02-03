@@ -120,7 +120,7 @@
             $dialogue = mysqli_query($con, $sql);
         ?>
 
-        <div class="dialogue-container hidden" id="dialogueContainer">
+        <div class="dialogue-container hide" id="dialogueContainer">
             <div class="p-6 bg-white rounded-lg shadow space-y-6">
 
                 <?php while ($row = mysqli_fetch_assoc($dialogue)) { ?>
@@ -141,7 +141,7 @@
 
                                 <?php if ($_SESSION['role'] == "Pensyarah") { ?>
 
-                                    <button class="delete-btn mr-3" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
+                                    <button class="delete-btn mr-3" type="button" title="Delete" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
                                         <span class="material-icons">delete</span>
                                     </button>
 
@@ -423,6 +423,31 @@
     </div>
 </div>
 
+<div id="edit-delete-modal" tabindex="-1" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow-sm">
+                <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="edit-delete-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-4 md:p-5 text-center">
+                    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500">Anda pasti ingin memadam dialog ini?</h3>
+                    <button id="edit-confirm-delete" data-modal-hide="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                        Ya, Saya Pasti
+                    </button>
+                    <button data-modal-hide="delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                        Tidak, Batalkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
 <script>
 
@@ -506,13 +531,13 @@
     const dialogueContainer = document.getElementById("dialogueContainer");
 
     btnWord.addEventListener("click", () => {
-        wordContainer.classList.remove("hidden");
-        dialogueContainer.classList.add("hidden");
+        wordContainer.classList.remove("hide");
+        dialogueContainer.classList.add("hide");
     });
 
     btnDialogue.addEventListener("click", () => {
-        dialogueContainer.classList.remove("hidden");
-        wordContainer.classList.add("hidden");
+        dialogueContainer.classList.remove("hide");
+        wordContainer.classList.add("hide");
     });
 
 
@@ -553,6 +578,23 @@ document.querySelectorAll('.dialogue-closeBtn').forEach(btn => {
         modal.hide();
 
     });
+});
+
+document.querySelectorAll('[data-modal-toggle="edit-delete-modal"]').forEach(button => {
+    button.addEventListener('click', function() {
+        let userId = this.getAttribute('data-id'); // Get user ID
+        let topicId = this.getAttribute('data-topic-id'); // Get user ID
+        document.getElementById('edit-confirm-delete').setAttribute('data-id', userId); // Store in modal
+        document.getElementById('edit-confirm-delete').setAttribute('data-topic-id', topicId); // Store in modal
+
+    });
+});
+
+document.getElementById('edit-confirm-delete').addEventListener('click', function() {
+    let userId = this.getAttribute('data-id'); // Retrieve stored ID
+    let topicId = this.getAttribute('data-topic-id'); // Retrieve stored ID
+    window.location.href = '../backend/topic-content-dialogueBE.php?delete-id=' + userId+"&topik_id=" + topicId; // Redirect with ID
+        
 });
 
 

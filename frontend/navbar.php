@@ -1,3 +1,9 @@
+<?php
+  include('../config/config.php');
+  $sql = "SELECT * FROM topics";
+  $result = mysqli_query($con, $sql);
+?>
+
 <nav class="fixed w-full z-20 top-0 start-0 border-default" style="background-color: #B71C1C;">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
 
@@ -19,7 +25,7 @@
       <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 rounded-base md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0">
 
         <li>
-          <a href="#" class="block py-2 px-3 text-white nav-hover rounded">Home</a>
+          <a href="../frontend/main.php" class="block py-2 px-3 text-white nav-hover rounded">Home</a>
         </li>
 
         <li>
@@ -34,10 +40,9 @@
           <!-- Dropdown menu -->
           <div id="dropdownNavbar" class="z-10 hidden rounded-lg shadow-lg w-44 mt-2" style="background-color: #B71C1C;">
               <ul class="p-2 text-sm font-medium">
-                <li><a href="#" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Dashboard</a></li>
-                <li><a href="#" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Settings</a></li>
-                <li><a href="#" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Earnings</a></li>
-                <li><a href="#" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Sign out</a></li>
+                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                  <li><a href="../frontend/topic-content.php?id='<?php echo $row['id']?>'" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
+                <?php } ?>
               </ul>
           </div>
         </li>

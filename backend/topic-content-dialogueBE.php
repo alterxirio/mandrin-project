@@ -8,50 +8,43 @@ if (!is_dir($folder)) {
     mkdir($folder, 0777, true);
 }
 
-// if (isset($_POST['edit_chinese'])) {
+if (isset($_POST['edit_dialogue_id'])) {
 
-//     $id = $_POST['edit_id'];
-//     $chinese = $_POST['edit_chinese'];
-//     $pinyin = $_POST['edit_pinyin'];
-//     $meaning = $_POST['edit_meaning'];
+    $edit_dialogue_id = $_POST['edit_dialogue_id'];
+    $edit_dialogue = $_POST['edit_dialogue'];
+    $edit_pinyinDialogue = $_POST['edit_pinyinDialogue'];
+    $edit_character = $_POST['edit_character'];
+    $edit_meaningDialogue = $_POST['edit_meaningDialogue'];
 
-//     // If new audio uploaded
-//     if (isset($_FILES['edit_audio']) && $_FILES['edit_audio']['error'] == 0) {
 
-//         // Get old audio path
-//         $q = mysqli_query($con, "SELECT audio_path FROM dialogues WHERE id='$id'");
-//         $d = mysqli_fetch_assoc($q);
-//         $old_audio = $d['audio_path'];
+    // If new audio uploaded
+    if (isset($_FILES['edit_audioDialogue']) && $_FILES['edit_audioDialogue']['error'] == 0) {
 
-//         if (file_exists($old_audio)) {
-//             unlink($old_audio);
-//         }
+        // Get old audio path
+        $q = mysqli_query($con, "SELECT audio_path FROM dialogues WHERE id='$edit_dialogue_id'");
+        $d = mysqli_fetch_assoc($q);
+        $old_audio = $d['audio_path'];
 
-//         // Keep same filename number
-//         $filename = basename($old_audio);
-//         $destination = $folder . $filename;
-//         move_uploaded_file($_FILES['edit_audio']['tmp_name'], $destination);
+        if (file_exists($old_audio)) {
+            unlink($old_audio);
+        }
 
-//         $sql = "UPDATE dialogues 
-//                 SET chinese_text='$chinese',
-//                     pinyin_text='$pinyin',
-//                     meaning='$meaning',
-//                     audio_path='$destination'
-//                 WHERE id='$id'";
+        // Keep same filename number
+        $filename = basename($old_audio);
+        $destination = $folder . $filename;
+        move_uploaded_file($_FILES['edit_audioDialogue']['tmp_name'], $destination);
 
-//     } else {
+        $sql = "UPDATE dialogues  SET chinese_text='$edit_dialogue', pinyin_text='$edit_pinyinDialogue', meaning='$edit_meaningDialogue', character_name='$edit_character', audio_path='$destination' WHERE id='$edit_dialogue_id'";
 
-//         $sql = "UPDATE dialogues 
-//                 SET chinese_text='$chinese',
-//                     pinyin_text='$pinyin',
-//                     meaning='$meaning'
-//                 WHERE id='$id'";
-//     }
+    } else {
 
-//     mysqli_query($con, $sql);
-//     header("Location: ../frontend/topic-content.php?id=$topik_id");
-//     exit;
-// }
+        $sql = "UPDATE dialogues  SET chinese_text='$edit_dialogue', pinyin_text='$edit_pinyinDialogue', meaning='$edit_meaningDialogue', character_name='$edit_character' WHERE id='$edit_dialogue_id'";
+    }
+
+    mysqli_query($con, $sql);
+    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    exit;
+}
 
 if (isset($_POST['add_dialogue'])) {
 
@@ -81,24 +74,24 @@ if (isset($_POST['add_dialogue'])) {
          VALUES ('$topik_id','$add_dialogue','$add_pinyinDialogue','$add_meaningDialogue','$add_character','$destination')"
     );
 
-    // header("Location: ../frontend/topic-content.php?id=$topik_id");
+    header("Location: ../frontend/topic-content.php?id=$topik_id");
     exit;
 }
 
-// if (isset($_GET['delete-id'])) {
+if (isset($_GET['delete-id'])) {
 
-//     $id = $_GET['delete-id'];
+    $id = $_GET['delete-id'];
 
-//     $query = mysqli_query($con, "SELECT audio_path FROM dialogues WHERE id='$id'");
-//     $data = mysqli_fetch_assoc($query);
+    $query = mysqli_query($con, "SELECT audio_path FROM dialogues WHERE id='$id'");
+    $data = mysqli_fetch_assoc($query);
 
-//     if ($data && file_exists($data['audio_path'])) {
-//         unlink($data['audio_path']);
-//     }
+    if ($data && file_exists($data['audio_path'])) {
+        unlink($data['audio_path']);
+    }
 
-//     mysqli_query($con, "DELETE FROM dialogues WHERE id='$id'");
+    mysqli_query($con, "DELETE FROM dialogues WHERE id='$id'");
 
-//     header("Location: ../frontend/topic-content.php?id=$topik_id");
-//     exit;
-// }
+    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    exit;
+}
 ?>

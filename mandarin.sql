@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 12, 2025 at 04:37 PM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 7.4.33
+-- Generation Time: Jan 20, 2026 at 05:32 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,8 +33,16 @@ CREATE TABLE `dialogues` (
   `chinese_text` text NOT NULL,
   `pinyin_text` text DEFAULT NULL,
   `meaning` text DEFAULT NULL,
+  `character_name` varchar(232) NOT NULL,
   `audio_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `dialogues`
+--
+
+INSERT INTO `dialogues` (`id`, `topic_id`, `chinese_text`, `pinyin_text`, `meaning`, `character_name`, `audio_path`) VALUES
+(8, 2, '你好！你好吗 小猫在森林里跳舞，风吹过河面，带来花香。 风吹过河面，带来花香。月亮轻轻照亮树叶，风吹过河面，带来花香', 'sad', 'ha ha', 'GA', '../media/audio/dialogue/dialogue-2/2.mp3');
 
 -- --------------------------------------------------------
 
@@ -133,7 +141,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `angkagiliran`, `password`, `nama`, `role`, `current_score`, `topic_done`, `created_at`) VALUES
-(1, 'BKV0425KA008', '0465', 'Aqif', 'Pelajar', 0, 0, '2025-12-10 12:52:15');
+(1, 'BKV0425KA008', '0465', 'Aqif', 'Pelajar', 0, 0, '2025-12-10 12:52:15'),
+(2, '071130020463', '0465', 'Umirah', 'Pensyarah', 0, 0, '2025-12-17 06:15:51');
 
 -- --------------------------------------------------------
 
@@ -149,6 +158,25 @@ CREATE TABLE `words` (
   `meaning` varchar(100) DEFAULT NULL,
   `audio_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `words`
+--
+
+INSERT INTO `words` (`id`, `topic_id`, `chinese`, `pinyin`, `meaning`, `audio_path`) VALUES
+(1, 1, '你好', 'nǐ hǎo', 'Hello', 'audio/topic1/nihao.mp3'),
+(2, 1, '谢谢', 'xiè xie', 'Thank you', 'audio/topic1/xiexie.mp3'),
+(3, 1, '对不起', 'duì bu qǐ', 'Sorry', 'audio/topic1/duibuqi.mp3'),
+(4, 1, '再见', 'zài jiàn', 'Goodbye', 'audio/topic1/zaijian.mp3'),
+(5, 1, '请', 'qǐng', 'Please', 'audio/topic1/qing.mp3'),
+(6, 1, '是', 'shì', 'Yes / To be', 'audio/topic1/shi.mp3'),
+(7, 1, '不是', 'bú shì', 'No / Is not', 'audio/topic1/bushi.mp3'),
+(8, 1, '我', 'wǒ', 'I / Me', 'audio/topic1/wo.mp3'),
+(9, 1, '你', 'nǐ', 'You', 'audio/topic1/ni.mp3'),
+(10, 1, '他', 'tā', 'He / Him', 'audio/topic1/ta.mp3'),
+(13, 2, 'test', 'test', 'test', '../media/audio/topik-2/topik 2 - test.mp3'),
+(14, 2, '你好', 'test', 'hello', '../media/audio/topik-2/topik 2 - 你好.mp3'),
+(15, 2, '明天', 'míngtiān', 'esok', '../media/audio/topik-2/topik 2 - 明天.mp3');
 
 --
 -- Indexes for dumped tables
@@ -211,7 +239,7 @@ ALTER TABLE `words`
 -- AUTO_INCREMENT for table `dialogues`
 --
 ALTER TABLE `dialogues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `exercises`
@@ -241,13 +269,13 @@ ALTER TABLE `topics`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `words`
 --
 ALTER TABLE `words`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Constraints for dumped tables
