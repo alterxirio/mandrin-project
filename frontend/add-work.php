@@ -48,6 +48,11 @@
     </div>
 
 </div> -->
+<?php include("../question/drag-and-drop.php"); ?>
+<?php include("../question/audio-image.php"); ?>
+<?php include("../question/match-image.php"); ?>
+
+
 
 <div class="grid place-items-center bg-gray-100">
 
