@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match Image Question</title>
 
-    <link rel="stylesheet" href="../css/work.php">
-    <?php include("header.php"); ?>
-
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-</head>
-
-<body class="bg-gray-100 min-h-screen">
-<?php include("navbar.php"); ?>
 
 <main class="max-w-6xl mx-auto px-6 py-8">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
@@ -37,7 +23,7 @@
                         <li>Label perkataan boleh jadi Mandarin, pinyin, atau terjemahan.</li>
                     </ul>
                 </div>
-            </div>
+            </div>  
 
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
@@ -116,8 +102,3 @@ document.addEventListener("DOMContentLoaded", () => {
     addDefaultPairs();
 });
 </script>
-
-
-
-</body>
-</html>
