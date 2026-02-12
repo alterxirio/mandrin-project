@@ -31,8 +31,11 @@
       <p class="text-sm text-gray-500">Pilih ikon untuk tambah soalan</p>
     </div>
 
-    <div id="selectedQuestionList" class="space-y-2"></div>
-    <p id="selectedQuestionEmpty" class="text-sm text-gray-400">Belum ada soalan. Klik ikon di bawah untuk mula.</p>
+    <form id="questionPlanForm" action="#" method="post" class="space-y-4">
+      <div id="selectedQuestionList" class="space-y-2"></div>
+      <p id="selectedQuestionEmpty" class="text-sm text-gray-400">Belum ada soalan dipilih.</p>
+      <p class="text-xs text-gray-500">Senarai ini disimpan automatik semasa anda pilih jenis soalan.</p>
+    </form>
   </div>
 
   <div class="bg-white shadow-lg rounded-2xl border border-gray-200 p-4">
@@ -61,111 +64,112 @@
     </div>
   </div>
 
-  <div id="questionEditorPanel" class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hidden">
-    <div class="flex items-center justify-between mb-4">
-      <h4 id="activeFormTitle" class="text-lg font-semibold text-gray-800"></h4>
-      <span class="text-xs text-gray-500">Isi borang untuk soalan ini</span>
-    </div>
-    <div id="questionEditorBody"></div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 pb-8">
+  <div id="questionFormPanel" class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8 hidden">
+    <form action="#" method="post" enctype="multipart/form-data" class="space-y-6">
+      <input id="activeQuestionType" type="hidden" name="question_type" value="">
+
+      <?php foreach ($question_map as $type_key => $question_file) { ?>
+        <div class="question-form-content hidden" data-form-type="<?php echo htmlspecialchars($type_key); ?>">
+          <?php include($question_file); ?>
+        </div>
+      <?php } ?>
+    </form>
   </div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const selectedTypesStorageKey = "selected-question-types";
     const questionLabels = <?php echo json_encode($question_labels); ?>;
     const typeLinks = document.querySelectorAll(".question-type-link");
     const selectedList = document.getElementById("selectedQuestionList");
     const emptyText = document.getElementById("selectedQuestionEmpty");
-    const editorPanel = document.getElementById("questionEditorPanel");
-    const editorBody = document.getElementById("questionEditorBody");
-    const activeFormTitle = document.getElementById("activeFormTitle");
+    const questionPlanForm = document.getElementById("questionPlanForm");
+    const questionFormPanel = document.getElementById("questionFormPanel");
+    const questionTypeField = document.getElementById("activeQuestionType");
+    const questionFormSections = document.querySelectorAll(".question-form-content");
 
-    if (!selectedList || !emptyText || !editorPanel || !editorBody || !activeFormTitle) {
+    if (!selectedList || !emptyText || !questionPlanForm || !questionFormPanel || !questionTypeField) {
       return;
     }
 
-    const selectedQuestions = [];
-    let activeQuestionId = null;
-    let sequence = 1;
-    const formHtmlCache = {};
+    const showQuestionForm = (typeKey) => {
+      let isShown = false;
+
+      questionFormSections.forEach((section) => {
+        const matches = section.dataset.formType === typeKey;
+        section.classList.toggle("hidden", !matches);
+        if (matches) {
+          isShown = true;
+        }
+      });
+
+      questionFormPanel.classList.toggle("hidden", !isShown);
+      questionTypeField.value = isShown ? typeKey : "";
+    };
 
     const updateEmptyState = () => {
       emptyText.classList.toggle("hidden", selectedQuestions.length > 0);
     };
 
-    const executeEmbeddedScripts = (container) => {
-      const scripts = container.querySelectorAll("script");
-      scripts.forEach((oldScript) => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
+    const refreshOrderInputs = () => {
+      Array.from(selectedList.children).forEach((item, index) => {
+        const orderInput = item.querySelector("input[name='question_orders[]']");
+        const choiceInput = item.querySelector("input[name='question_formats[]']");
+        if (orderInput) {
+          orderInput.value = index + 1;
         }
-        oldScript.replaceWith(newScript);
+
+        if (choiceInput) {
+          choiceInput.dataset.order = index + 1;
+        }
       });
     };
 
-    const renderQuestionList = () => {
-      selectedList.innerHTML = "";
+    const getSelectedTypes = () => {
+      return Array.from(
+        selectedList.querySelectorAll("input[name='question_formats[]']"),
+        (input) => input.value
+      );
+    };
 
-      selectedQuestions.forEach((question, index) => {
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2";
+    const persistSelectedTypes = () => {
+      localStorage.setItem(selectedTypesStorageKey, JSON.stringify(getSelectedTypes()));
+    };
 
-        const label = document.createElement("button");
-        label.type = "button";
-        label.className = "text-sm text-left text-gray-700 hover:text-red-600";
-        label.textContent = `${index + 1}. ${questionLabels[question.type] || question.type}`;
-        label.addEventListener("click", () => {
-          activeQuestionId = question.id;
-          renderQuestionList();
-          renderEditor();
-        });
+    const createSelectedItem = (typeKey) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex items-center justify-between rounded-lg border border-gray-200 px-4 py-2";
 
-        const right = document.createElement("div");
-        right.className = "flex items-center gap-3";
+      const label = document.createElement("p");
+      label.className = "text-sm text-gray-700";
+      label.textContent = questionLabels[typeKey] || typeKey;
 
-        const orderInput = document.createElement("input");
-        orderInput.type = "hidden";
-        orderInput.name = "question_orders[]";
-        orderInput.value = index + 1;
+      const rightGroup = document.createElement("div");
+      rightGroup.className = "flex items-center gap-3";
 
-        const formatInput = document.createElement("input");
-        formatInput.type = "hidden";
-        formatInput.name = "question_formats[]";
-        formatInput.value = question.type;
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "question_formats[]";
+      hidden.value = typeKey;
 
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.className = "text-xs font-semibold text-red-600 hover:text-red-700";
-        removeBtn.textContent = "Buang";
-        removeBtn.addEventListener("click", () => {
-          const targetIndex = selectedQuestions.findIndex((item) => item.id === question.id);
-          if (targetIndex >= 0) {
-            selectedQuestions.splice(targetIndex, 1);
-          }
+      const orderHidden = document.createElement("input");
+      orderHidden.type = "hidden";
+      orderHidden.name = "question_orders[]";
+      orderHidden.value = selectedList.children.length + 1;
 
-          if (activeQuestionId === question.id) {
-            activeQuestionId = selectedQuestions.length ? selectedQuestions[selectedQuestions.length - 1].id : null;
-          }
-
-          renderQuestionList();
-          renderEditor();
-        });
-
-        if (question.id === activeQuestionId) {
-          row.classList.add("ring-1", "ring-red-400");
-        }
-
-        right.appendChild(orderInput);
-        right.appendChild(formatInput);
-        right.appendChild(removeBtn);
-
-        row.appendChild(label);
-        row.appendChild(right);
-
-        selectedList.appendChild(row);
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "text-xs font-semibold text-red-600 hover:text-red-700";
+      removeBtn.textContent = "Buang";
+      removeBtn.addEventListener("click", () => {
+        wrapper.remove();
+        refreshOrderInputs();
+        updateEmptyState();
+        persistSelectedTypes();
       });
 
       updateEmptyState();
@@ -218,20 +222,62 @@
           return;
         }
 
-        selectedQuestions.push({
-          id: `q-${sequence}`,
-          type: typeKey,
-        });
+        selectedList.appendChild(createSelectedItem(typeKey));
+        refreshOrderInputs();
+        updateEmptyState();
+        persistSelectedTypes();
 
-        sequence += 1;
-        activeQuestionId = selectedQuestions[selectedQuestions.length - 1].id;
-
-        renderQuestionList();
-        renderEditor();
+        window.history.replaceState({}, "", link.href);
+        showQuestionForm(typeKey);
       });
     });
 
-    renderQuestionList();
+    questionPlanForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+    });
+
+    document.querySelectorAll("form[action='#']").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
+    });
+
+    const restoreSelectedTypes = () => {
+      const raw = localStorage.getItem(selectedTypesStorageKey);
+
+      if (!raw) {
+        return;
+      }
+
+      let parsedTypes = [];
+      try {
+        parsedTypes = JSON.parse(raw);
+      } catch (_error) {
+        localStorage.removeItem(selectedTypesStorageKey);
+        return;
+      }
+
+      if (!Array.isArray(parsedTypes)) {
+        localStorage.removeItem(selectedTypesStorageKey);
+        return;
+      }
+
+      parsedTypes.forEach((typeKey) => {
+        if (questionLabels[typeKey]) {
+          selectedList.appendChild(createSelectedItem(typeKey));
+        }
+      });
+
+      refreshOrderInputs();
+    };
+
+    restoreSelectedTypes();
+
+    if (questionLabels[<?php echo json_encode($question_type); ?>]) {
+      showQuestionForm(<?php echo json_encode($question_type); ?>);
+    }
+
+    updateEmptyState();
   });
 </script>
 
