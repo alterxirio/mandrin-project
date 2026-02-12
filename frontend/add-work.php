@@ -43,9 +43,7 @@
     <form id="questionPlanForm" action="#" method="post" class="space-y-4">
       <div id="selectedQuestionList" class="space-y-2"></div>
       <p id="selectedQuestionEmpty" class="text-sm text-gray-400">Belum ada soalan dipilih.</p>
-      <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
-        Simpan Senarai Soalan
-      </button>
+      <p class="text-xs text-gray-500">Senarai ini disimpan automatik semasa anda pilih jenis soalan.</p>
     </form>
   </div>
 </div>
@@ -80,28 +78,50 @@
 
 </div>
 
-<?php if ($question_type && array_key_exists($question_type, $question_map)) { ?>
-  <div class="max-w-6xl mx-auto px-6 pb-8">
-    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
-      <form action="#" method="post" enctype="multipart/form-data" class="space-y-6">
-        <input type="hidden" name="question_type" value="<?php echo htmlspecialchars($question_type); ?>">
-        <?php include($question_map[$question_type]); ?>
-      </form>
-    </div>
+<div class="max-w-6xl mx-auto px-6 pb-8">
+  <div id="questionFormPanel" class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8 hidden">
+    <form action="#" method="post" enctype="multipart/form-data" class="space-y-6">
+      <input id="activeQuestionType" type="hidden" name="question_type" value="">
+
+      <?php foreach ($question_map as $type_key => $question_file) { ?>
+        <div class="question-form-content hidden" data-form-type="<?php echo htmlspecialchars($type_key); ?>">
+          <?php include($question_file); ?>
+        </div>
+      <?php } ?>
+    </form>
   </div>
-<?php } ?>
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const selectedTypesStorageKey = "selected-question-types";
     const questionLabels = <?php echo json_encode($question_labels); ?>;
     const typeLinks = document.querySelectorAll(".question-type-link");
     const selectedList = document.getElementById("selectedQuestionList");
     const emptyText = document.getElementById("selectedQuestionEmpty");
     const questionPlanForm = document.getElementById("questionPlanForm");
+    const questionFormPanel = document.getElementById("questionFormPanel");
+    const questionTypeField = document.getElementById("activeQuestionType");
+    const questionFormSections = document.querySelectorAll(".question-form-content");
 
-    if (!selectedList || !emptyText || !questionPlanForm) {
+    if (!selectedList || !emptyText || !questionPlanForm || !questionFormPanel || !questionTypeField) {
       return;
     }
+
+    const showQuestionForm = (typeKey) => {
+      let isShown = false;
+
+      questionFormSections.forEach((section) => {
+        const matches = section.dataset.formType === typeKey;
+        section.classList.toggle("hidden", !matches);
+        if (matches) {
+          isShown = true;
+        }
+      });
+
+      questionFormPanel.classList.toggle("hidden", !isShown);
+      questionTypeField.value = isShown ? typeKey : "";
+    };
 
     const updateEmptyState = () => {
       emptyText.classList.toggle("hidden", selectedList.children.length > 0);
@@ -110,10 +130,26 @@
     const refreshOrderInputs = () => {
       Array.from(selectedList.children).forEach((item, index) => {
         const orderInput = item.querySelector("input[name='question_orders[]']");
+        const choiceInput = item.querySelector("input[name='question_formats[]']");
         if (orderInput) {
           orderInput.value = index + 1;
         }
+
+        if (choiceInput) {
+          choiceInput.dataset.order = index + 1;
+        }
       });
+    };
+
+    const getSelectedTypes = () => {
+      return Array.from(
+        selectedList.querySelectorAll("input[name='question_formats[]']"),
+        (input) => input.value
+      );
+    };
+
+    const persistSelectedTypes = () => {
+      localStorage.setItem(selectedTypesStorageKey, JSON.stringify(getSelectedTypes()));
     };
 
     const createSelectedItem = (typeKey) => {
@@ -145,6 +181,7 @@
         wrapper.remove();
         refreshOrderInputs();
         updateEmptyState();
+        persistSelectedTypes();
       });
 
       rightGroup.appendChild(hidden);
@@ -167,17 +204,57 @@
         selectedList.appendChild(createSelectedItem(typeKey));
         refreshOrderInputs();
         updateEmptyState();
+        persistSelectedTypes();
 
         window.history.replaceState({}, "", link.href);
+        showQuestionForm(typeKey);
       });
     });
 
     questionPlanForm.addEventListener("submit", (event) => {
-      if (selectedList.children.length === 0) {
-        event.preventDefault();
-        alert("Sila tambah sekurang-kurangnya satu soalan.");
-      }
+      event.preventDefault();
     });
+
+    document.querySelectorAll("form[action='#']").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
+    });
+
+    const restoreSelectedTypes = () => {
+      const raw = localStorage.getItem(selectedTypesStorageKey);
+
+      if (!raw) {
+        return;
+      }
+
+      let parsedTypes = [];
+      try {
+        parsedTypes = JSON.parse(raw);
+      } catch (_error) {
+        localStorage.removeItem(selectedTypesStorageKey);
+        return;
+      }
+
+      if (!Array.isArray(parsedTypes)) {
+        localStorage.removeItem(selectedTypesStorageKey);
+        return;
+      }
+
+      parsedTypes.forEach((typeKey) => {
+        if (questionLabels[typeKey]) {
+          selectedList.appendChild(createSelectedItem(typeKey));
+        }
+      });
+
+      refreshOrderInputs();
+    };
+
+    restoreSelectedTypes();
+
+    if (questionLabels[<?php echo json_encode($question_type); ?>]) {
+      showQuestionForm(<?php echo json_encode($question_type); ?>);
+    }
 
     updateEmptyState();
   });
