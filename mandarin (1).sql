@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jan 20, 2026 at 05:32 PM
+-- Host: 127.0.0.1:3307
+-- Generation Time: Feb 09, 2026 at 04:08 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,47 +47,34 @@ INSERT INTO `dialogues` (`id`, `topic_id`, `chinese_text`, `pinyin_text`, `meani
 -- --------------------------------------------------------
 
 --
--- Table structure for table `exercises`
+-- Table structure for table `homework`
 --
 
-CREATE TABLE `exercises` (
+CREATE TABLE `homework` (
   `id` int(11) NOT NULL,
-  `topic_id` int(11) NOT NULL,
-  `type` enum('mcq','truefalse','listening_mcq','picture_mcq','matching','fillblank','write_character','write_pinyin','ordering','dialogue_fill','reading_mcq','pinyin_character_match','picture_identification') NOT NULL,
-  `question_text` text DEFAULT NULL,
-  `audio` varchar(255) DEFAULT NULL,
-  `image` varchar(255) DEFAULT NULL,
-  `expected_answer` text DEFAULT NULL
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `due_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `exercise_items`
+-- Table structure for table `questions`
 --
 
-CREATE TABLE `exercise_items` (
+CREATE TABLE `questions` (
   `id` int(11) NOT NULL,
-  `exercise_id` int(11) NOT NULL,
-  `content` text DEFAULT NULL,
-  `match_with` text DEFAULT NULL,
-  `is_correct` tinyint(1) DEFAULT 0,
-  `image` varchar(255) DEFAULT NULL,
-  `order_index` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `student_scores`
---
-
-CREATE TABLE `student_scores` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `topic_id` int(11) NOT NULL,
-  `score` int(11) DEFAULT 0,
-  `taken_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `homework_id` int(11) NOT NULL,
+  `type` enum('mcq','listening','picture','truefalse','rearrange') NOT NULL,
+  `question_text` text NOT NULL,
+  `option_a` varchar(255) DEFAULT NULL,
+  `option_b` varchar(255) DEFAULT NULL,
+  `option_c` varchar(255) DEFAULT NULL,
+  `option_d` varchar(255) DEFAULT NULL,
+  `correct_answer` varchar(50) DEFAULT NULL,
+  `audio_file` varchar(255) DEFAULT NULL,
+  `image_file` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -176,7 +163,8 @@ INSERT INTO `words` (`id`, `topic_id`, `chinese`, `pinyin`, `meaning`, `audio_pa
 (10, 1, '他', 'tā', 'He / Him', 'audio/topic1/ta.mp3'),
 (13, 2, 'test', 'test', 'test', '../media/audio/topik-2/topik 2 - test.mp3'),
 (14, 2, '你好', 'test', 'hello', '../media/audio/topik-2/topik 2 - 你好.mp3'),
-(15, 2, '明天', 'míngtiān', 'esok', '../media/audio/topik-2/topik 2 - 明天.mp3');
+(15, 2, '明天', 'míngtiān', 'esok', '../media/audio/topik-2/topik 2 - 明天.mp3'),
+(27, 2, 'bkl', 'hahakj', 'bvm', '../media/audio/topik-2/topik 2 - bla.mp3');
 
 --
 -- Indexes for dumped tables
@@ -190,26 +178,17 @@ ALTER TABLE `dialogues`
   ADD KEY `topic_id` (`topic_id`);
 
 --
--- Indexes for table `exercises`
+-- Indexes for table `homework`
 --
-ALTER TABLE `exercises`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `topic_id` (`topic_id`);
+ALTER TABLE `homework`
+  ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `exercise_items`
+-- Indexes for table `questions`
 --
-ALTER TABLE `exercise_items`
+ALTER TABLE `questions`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `exercise_id` (`exercise_id`);
-
---
--- Indexes for table `student_scores`
---
-ALTER TABLE `student_scores`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `topic_id` (`topic_id`);
+  ADD KEY `homework_id` (`homework_id`);
 
 --
 -- Indexes for table `topics`
@@ -242,21 +221,15 @@ ALTER TABLE `dialogues`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- AUTO_INCREMENT for table `exercises`
+-- AUTO_INCREMENT for table `homework`
 --
-ALTER TABLE `exercises`
+ALTER TABLE `homework`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `exercise_items`
+-- AUTO_INCREMENT for table `questions`
 --
-ALTER TABLE `exercise_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `student_scores`
---
-ALTER TABLE `student_scores`
+ALTER TABLE `questions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -275,7 +248,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `words`
 --
 ALTER TABLE `words`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- Constraints for dumped tables
@@ -288,23 +261,10 @@ ALTER TABLE `dialogues`
   ADD CONSTRAINT `dialogues_ibfk_1` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `exercises`
+-- Constraints for table `questions`
 --
-ALTER TABLE `exercises`
-  ADD CONSTRAINT `exercises_ibfk_1` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `exercise_items`
---
-ALTER TABLE `exercise_items`
-  ADD CONSTRAINT `exercise_items_ibfk_1` FOREIGN KEY (`exercise_id`) REFERENCES `exercises` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `student_scores`
---
-ALTER TABLE `student_scores`
-  ADD CONSTRAINT `student_scores_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `student_scores_ibfk_2` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE;
+ALTER TABLE `questions`
+  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`homework_id`) REFERENCES `homework` (`id`);
 
 --
 -- Constraints for table `words`
