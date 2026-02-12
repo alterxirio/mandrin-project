@@ -49,35 +49,57 @@
 
 </div> -->
 
+<?php
+  $question_type = $_GET['type'] ?? '';
+  $question_map = [
+    'drag-drop' => 'question-forms/drag-drop.php',
+    'audio-image' => 'question-forms/audio-image.php',
+    'match-image' => 'question-forms/match-image.php',
+    'mcq-text' => 'question-forms/mcq-text.php',
+    'true-false' => 'question-forms/true-false-image.php',
+  ];
+?>
+
 <div class="grid place-items-center bg-gray-100">
 
 <p class="mb-3 text-lg">Sila pilih jenis soalan yang ingin dipilih</p>
 
   <div class="w-[65vw] bg-white shadow-lg rounded-2xl border border-gray-200 flex justify-center gap-4 p-4">
   
-    <button class="w-[15%] hover:scale-105 transition">
-      <img src="../media/graphic/drag.png" alt="" class="w-full object-contain">
-    </button>
+    <a class="w-[15%] hover:scale-105 transition" href="add-work.php?type=drag-drop">
+      <img src="../media/graphic/drag.png" alt="Soalan seret dan lepas" class="w-full object-contain">
+    </a>
 
-    <button class="w-[15%] hover:scale-105 transition">
-      <img src="../media/graphic/hear.png" alt="" class="w-full object-contain">
-    </button>
+    <a class="w-[15%] hover:scale-105 transition" href="add-work.php?type=audio-image">
+      <img src="../media/graphic/hear.png" alt="Soalan dengar dan pilih gambar" class="w-full object-contain">
+    </a>
 
-    <button class="w-[15%] hover:scale-105 transition">
-      <img src="../media/graphic/match.png" alt="" class="w-full object-contain">
-    </button>
+    <a class="w-[15%] hover:scale-105 transition" href="add-work.php?type=match-image">
+      <img src="../media/graphic/match.png" alt="Soalan padankan perkataan dan gambar" class="w-full object-contain">
+    </a>
 
-    <button class="w-[15%] hover:scale-105 transition">
-      <img src="../media/graphic/mcq.png" alt="" class="w-full object-contain">
-    </button>
+    <a class="w-[15%] hover:scale-105 transition" href="add-work.php?type=mcq-text">
+      <img src="../media/graphic/mcq.png" alt="Soalan MCQ teks sahaja" class="w-full object-contain">
+    </a>
 
-    <button class="w-[15%] hover:scale-105 transition">
-      <img src="../media/graphic/true-false.png" alt="" class="w-full object-contain">
-    </button>
+    <a class="w-[15%] hover:scale-105 transition" href="add-work.php?type=true-false">
+      <img src="../media/graphic/true-false.png" alt="Soalan betul salah berdasarkan gambar" class="w-full object-contain">
+    </a>
 
   </div>
 
 </div>
+
+<?php if ($question_type && array_key_exists($question_type, $question_map)) { ?>
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
+      <form action="#" method="post" enctype="multipart/form-data" class="space-y-6">
+        <input type="hidden" name="question_type" value="<?php echo htmlspecialchars($question_type); ?>">
+        <?php include($question_map[$question_type]); ?>
+      </form>
+    </div>
+  </div>
+<?php } ?>
 
 
 
