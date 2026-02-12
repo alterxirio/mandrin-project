@@ -15,15 +15,6 @@
 <?php include("navbar.php"); ?>
 
 <?php
-  $question_type = $_GET['type'] ?? '';
-  $question_map = [
-    'drag-drop' => 'question-forms/drag-drop.php',
-    'audio-image' => 'question-forms/audio-image.php',
-    'match-image' => 'question-forms/match-image.php',
-    'mcq-text' => 'question-forms/mcq-text.php',
-    'true-false' => 'question-forms/true-false-image.php',
-  ];
-
   $question_labels = [
     'drag-drop' => 'Seret dan Lepas',
     'audio-image' => 'Dengar & Pilih Gambar',
@@ -33,11 +24,11 @@
   ];
 ?>
 
-<div class="max-w-6xl mx-auto px-6 py-6">
+<div class="max-w-6xl mx-auto px-6 py-6 space-y-6">
   <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-3">
       <h3 class="text-lg font-semibold text-gray-800">Senarai Soalan Dalam Tugasan</h3>
-      <p class="text-sm text-gray-500">Klik ikon soalan di bawah untuk tambah</p>
+      <p class="text-sm text-gray-500">Pilih ikon untuk tambah soalan</p>
     </div>
 
     <form id="questionPlanForm" action="#" method="post" class="space-y-4">
@@ -46,34 +37,31 @@
       <p class="text-xs text-gray-500">Senarai ini disimpan automatik semasa anda pilih jenis soalan.</p>
     </form>
   </div>
-</div>
 
-<div class="grid place-items-center bg-gray-100">
+  <div class="bg-white shadow-lg rounded-2xl border border-gray-200 p-4">
+    <p class="mb-3 text-lg">Pilih format soalan</p>
 
-<p class="mb-3 text-lg">Sila pilih jenis soalan yang ingin dipilih</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a class="question-type-link w-[120px] hover:scale-105 transition" data-type="drag-drop" href="add-work.php?type=drag-drop">
+        <img src="../media/graphic/drag.png" alt="Soalan seret dan lepas" class="w-full object-contain">
+      </a>
 
-  <div class="w-[65vw] bg-white shadow-lg rounded-2xl border border-gray-200 flex justify-center gap-4 p-4">
-  
-    <a class="question-type-link w-[15%] hover:scale-105 transition" data-type="drag-drop" href="add-work.php?type=drag-drop">
-      <img src="../media/graphic/drag.png" alt="Soalan seret dan lepas" class="w-full object-contain">
-    </a>
+      <a class="question-type-link w-[120px] hover:scale-105 transition" data-type="audio-image" href="add-work.php?type=audio-image">
+        <img src="../media/graphic/hear.png" alt="Soalan dengar dan pilih gambar" class="w-full object-contain">
+      </a>
 
-    <a class="question-type-link w-[15%] hover:scale-105 transition" data-type="audio-image" href="add-work.php?type=audio-image">
-      <img src="../media/graphic/hear.png" alt="Soalan dengar dan pilih gambar" class="w-full object-contain">
-    </a>
+      <a class="question-type-link w-[120px] hover:scale-105 transition" data-type="match-image" href="add-work.php?type=match-image">
+        <img src="../media/graphic/match.png" alt="Soalan padankan perkataan dan gambar" class="w-full object-contain">
+      </a>
 
-    <a class="question-type-link w-[15%] hover:scale-105 transition" data-type="match-image" href="add-work.php?type=match-image">
-      <img src="../media/graphic/match.png" alt="Soalan padankan perkataan dan gambar" class="w-full object-contain">
-    </a>
+      <a class="question-type-link w-[120px] hover:scale-105 transition" data-type="mcq-text" href="add-work.php?type=mcq-text">
+        <img src="../media/graphic/mcq.png" alt="Soalan MCQ teks sahaja" class="w-full object-contain">
+      </a>
 
-    <a class="question-type-link w-[15%] hover:scale-105 transition" data-type="mcq-text" href="add-work.php?type=mcq-text">
-      <img src="../media/graphic/mcq.png" alt="Soalan MCQ teks sahaja" class="w-full object-contain">
-    </a>
-
-    <a class="question-type-link w-[15%] hover:scale-105 transition" data-type="true-false" href="add-work.php?type=true-false">
-      <img src="../media/graphic/true-false.png" alt="Soalan betul salah berdasarkan gambar" class="w-full object-contain">
-    </a>
-
+      <a class="question-type-link w-[120px] hover:scale-105 transition" data-type="true-false" href="add-work.php?type=true-false">
+        <img src="../media/graphic/true-false.png" alt="Soalan betul salah berdasarkan gambar" class="w-full object-contain">
+      </a>
+    </div>
   </div>
 
 </div>
@@ -124,7 +112,7 @@
     };
 
     const updateEmptyState = () => {
-      emptyText.classList.toggle("hidden", selectedList.children.length > 0);
+      emptyText.classList.toggle("hidden", selectedQuestions.length > 0);
     };
 
     const refreshOrderInputs = () => {
@@ -184,20 +172,53 @@
         persistSelectedTypes();
       });
 
-      rightGroup.appendChild(hidden);
-      rightGroup.appendChild(orderHidden);
-      rightGroup.appendChild(removeBtn);
-      wrapper.appendChild(label);
-      wrapper.appendChild(rightGroup);
+      updateEmptyState();
+    };
 
-      return wrapper;
+    const loadQuestionForm = async (typeKey) => {
+      if (formHtmlCache[typeKey]) {
+        return formHtmlCache[typeKey];
+      }
+
+      const response = await fetch(`form-loader.php?type=${encodeURIComponent(typeKey)}`);
+      if (!response.ok) {
+        throw new Error("Gagal memuatkan borang soalan.");
+      }
+
+      const html = await response.text();
+      formHtmlCache[typeKey] = html;
+      return html;
+    };
+
+    const renderEditor = async () => {
+      const activeQuestion = selectedQuestions.find((item) => item.id === activeQuestionId);
+
+      if (!activeQuestion) {
+        editorPanel.classList.add("hidden");
+        editorBody.innerHTML = "";
+        activeFormTitle.textContent = "";
+        return;
+      }
+
+      activeFormTitle.textContent = questionLabels[activeQuestion.type] || activeQuestion.type;
+      editorPanel.classList.remove("hidden");
+      editorBody.innerHTML = '<p class="text-sm text-gray-500">Memuatkan borang...</p>';
+
+      try {
+        const html = await loadQuestionForm(activeQuestion.type);
+        editorBody.innerHTML = html;
+        executeEmbeddedScripts(editorBody);
+      } catch (_error) {
+        editorBody.innerHTML = '<p class="text-sm text-red-600">Borang tidak dapat dipaparkan. Sila cuba lagi.</p>';
+      }
     };
 
     typeLinks.forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
+
         const typeKey = link.dataset.type;
-        if (!typeKey) {
+        if (!typeKey || !questionLabels[typeKey]) {
           return;
         }
 
