@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag & Drop Question</title>
-
-    <link rel="stylesheet" href="../css/work.php">
-    <?php include("../frontend/header.php"); ?>
-
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-</head>
 
 <main class="max-w-6xl mx-auto px-6 py-8">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
@@ -74,7 +62,7 @@
     </div>
 </main>
 
-<script>
+<!-- <script>
     const wordInputs = document.getElementById("wordInputs");
     const addWordRow = document.getElementById("addWordRow");
     const draggableWords = document.getElementById("draggableWords");
@@ -180,4 +168,4 @@
     resetPreview.addEventListener("click", renderPreview);
 
     renderPreview();
-</script>
+</script> -->

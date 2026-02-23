@@ -1,59 +1,37 @@
 <main class="max-w-6xl mx-auto px-6 py-8">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
         <header class="space-y-2">
-            <h1 class="text-2xl font-semibold text-gray-800">Tambah Soalan Betul / Salah Berdasarkan Gambar</h1>
-            <p class="text-gray-500">Muat naik gambar dan tulis pernyataan untuk dinilai betul atau salah.</p>
+            <h1 class="text-2xl font-semibold text-gray-800">Tambah Soalan MCQ (Teks Sahaja)</h1>
+            <p class="text-gray-500">Tulis soalan dan bina pilihan jawapan.</p>
         </header>
 
         <section class="grid gap-6 lg:grid-cols-[2fr,3fr]">
             <div class="space-y-4">
-                <div>
-                    <label for="tfInstruction" class="block text-sm font-medium text-gray-700 mb-2">Arahan Soalan</label>
-                    <input id="tfInstruction" type="text" placeholder="Contoh: Lihat gambar dan tentukan pernyataan betul atau salah."
-                           class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
-                </div>
 
                 <div>
-                    <label for="tfImageUpload" class="block text-sm font-medium text-gray-700 mb-2">Gambar Soalan</label>
-                    <div class="space-y-2">
-                        <div id="tfImagePreview" class="h-40 rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-xs text-gray-400">
-                            Pratonton Gambar
-                        </div>
-                        <input id="tfImageUpload" type="file" accept="image/*"
-                               class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
-                    </div>
+                    <label for="mcqQuestion" class="block text-sm font-medium text-gray-700 mb-2">Soalan</label>
+                    <textarea id="mcqQuestion" rows="5" placeholder="Tulis soalan di sini..." class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
                 </div>
 
                 <div class="rounded-xl border border-dashed border-gray-300 p-4 bg-gray-50 space-y-2">
                     <p class="text-xs font-semibold text-gray-500">Nota</p>
                     <ul class="text-sm text-gray-500 space-y-1 list-disc list-inside">
-                        <li>Gunakan pernyataan yang mudah difahami.</li>
-                        <li>Pastikan jawapan betul/salah jelas.</li>
-                        <li>Contoh: "Gambar menunjukkan buah epal."</li>
+                        <li>Gunakan 3 hingga 4 pilihan jawapan.</li>
+                        <li>Masukkan hanya satu jawapan betul di dalam kotak pilihan.</li>
+                        <li>Masukkan jawapan salah dalam kotak pilihan yang lain.</li>
+                        <li>Pastikan soalan jelas dan ringkas.</li>
                     </ul>
                 </div>
             </div>
 
             <div class="space-y-4">
-                <div>
-                    <label for="tfStatement" class="block text-sm font-medium text-gray-700 mb-2">Pernyataan</label>
-                    <textarea id="tfStatement" rows="5" placeholder="Tulis pernyataan berdasarkan gambar..."
-                              class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-medium text-gray-700">Pilihan Jawapan</h2>
+                    <button id="mcqAddChoice" type="button"
+                            class="text-sm font-semibold text-red-600 hover:text-red-700">+ Tambah Pilihan</button>
                 </div>
 
-                <div class="rounded-xl border border-gray-200 p-4 bg-white shadow-sm space-y-3">
-                    <p class="text-sm font-semibold text-gray-700">Jawapan Betul</p>
-                    <div class="flex flex-col gap-2">
-                        <label class="flex items-center gap-2 text-sm text-gray-600">
-                            <input type="radio" name="tfCorrect" class="text-red-600 focus:ring-red-500">
-                            Betul
-                        </label>
-                        <label class="flex items-center gap-2 text-sm text-gray-600">
-                            <input type="radio" name="tfCorrect" class="text-red-600 focus:ring-red-500">
-                            Salah
-                        </label>
-                    </div>
-                </div>
+                <div id="mcqChoicesGrid" class="grid md:grid-cols-2 gap-4">
             </div>
         </section>
 
@@ -66,7 +44,7 @@
     </div>
 </main>
 
-<script>
+<!-- <script>
     document.addEventListener("DOMContentLoaded", () => {
         const imageUpload = document.getElementById("tfImageUpload");
         const imagePreview = document.getElementById("tfImagePreview");
@@ -93,4 +71,4 @@
             reader.readAsDataURL(file);
         });
     });
-</script>
+</script> -->

@@ -14,6 +14,8 @@
 
   <div class="grid place-items-center bg-gray-100">
 
+  <div id="formContainer" class="max-w-6xl mx-auto px-6 py-8 space-y-6"></div>
+
   <p class="mb-3 text-lg">Sila pilih jenis soalan yang ingin dipilih</p>
 
     <div class="w-[65vw] bg-white shadow-lg rounded-2xl border border-gray-200 flex justify-center gap-4 p-4">
@@ -42,17 +44,32 @@
   </div>
 
   <!-- Forms will appear here -->
-  <div id="formContainer" class="max-w-6xl mx-auto px-6 py-8 space-y-6"></div>
+
 
   <script>
-    function loadForm(type) {
-        fetch("form-loader.php?type=" + type)
-          .then(response => response.text())
-          .then(data => {
-              document.getElementById("formContainer").innerHTML += data;
-          });
+   function loadForm(type) {
+    fetch("form-loader.php?type=" + type)
+      .then(response => response.text())
+      .then(data => {
+
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = data;
+
+          document.getElementById("formContainer")
+                  .appendChild(wrapper);
+
+          initQuestion(type, wrapper);
+      });
     }
   </script>
 
+  <script src="../js/drag-drop.js"></script>
+  <script src="../js/mcq.js"></script>
+  <script src="../js/audio-image.js"></script>
+  <script src="../js/match-image.js"></script>
+  <script src="../js/true-false.js"></script>
+  <script src="../js/initQuestion.js"></script>
+  <script src="../js/question-init.js"></script>
+  
   </body>
 </html>

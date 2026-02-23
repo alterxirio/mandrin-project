@@ -31,7 +31,7 @@
                             class="text-sm font-semibold text-red-600 hover:text-red-700">+ Tambah Pilihan</button>
                 </div>
 
-                <div id="mcqChoicesGrid" class="grid gap-4 sm:grid-cols-2"></div>
+                <div id="mcqChoicesGrid" class="grid md:grid-cols-2 gap-4">
             </div>
         </section>
 
@@ -44,7 +44,7 @@
     </div>
 </main>
 
-<script>
+<!-- <script>
     document.addEventListener("DOMContentLoaded", () => {
         const choicesGrid = document.getElementById("mcqChoicesGrid");
         const addChoice = document.getElementById("mcqAddChoice");
@@ -125,4 +125,4 @@
 
         addDefaultChoices();
     });
-</script>
+</script> -->

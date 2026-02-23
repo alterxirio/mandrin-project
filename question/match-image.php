@@ -45,7 +45,7 @@
     </div>
 </main>
 
-<script>
+<!-- <script>
 document.addEventListener("DOMContentLoaded", () => {
     const pairList = document.getElementById("matchPairList");
     const addPair = document.getElementById("matchAddPair");
@@ -101,4 +101,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addDefaultPairs();
 });
-</script>
+</script> -->

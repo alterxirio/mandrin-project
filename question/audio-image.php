@@ -1,5 +1,4 @@
 
-
 <main class="max-w-6xl mx-auto px-6 py-8">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-8">
         <header class="space-y-2">
@@ -60,7 +59,7 @@
     </div>
 </main>
 
-<script>
+<!-- <script>
     const choicesGrid = document.getElementById("choicesGrid");
     const addChoice = document.getElementById("addChoice");
     const audioUpload = document.getElementById("audioUpload");
@@ -180,4 +179,4 @@
     });
 
     addDefaultChoices();
-</script>
+</script> -->
