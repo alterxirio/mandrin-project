@@ -64,7 +64,7 @@
   </script>
 
   <script src="../js/drag-drop.js"></script>
-  <script src="../js/mcq.js"></script>
+  <script src="../js/mcq-text.js"></script>
   <script src="../js/audio-image.js"></script>
   <script src="../js/match-image.js"></script>
   <script src="../js/true-false.js"></script>
