@@ -14,7 +14,7 @@
 
   <div class="grid place-items-center bg-gray-100">
 
-  <div id="formContainer" class="max-w-6xl mx-auto px-6 py-8 space-y-6"></div>
+  <div id="formContainer" class="w-full max-w-6xl mx-auto px-6 py-8 space-y-6"></div>
 
   <p class="mb-3 text-lg">Sila pilih jenis soalan yang ingin dipilih</p>
 

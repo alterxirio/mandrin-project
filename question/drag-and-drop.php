@@ -22,22 +22,27 @@
                     </div>
 
                     <div id="wordInputs" class="space-y-2">
-                        <div class="flex items-center gap-2">
+
+                        <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Saya"
-                                   class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
-                        <div class="flex items-center gap-2">
+
+                        <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Suka"
-                                   class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
-                        <div class="flex items-center gap-2">
+
+                        <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Belajar mandarin"
-                                   class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
+
                     </div>
+                    
                 </div>
             </div>
 
