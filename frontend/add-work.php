@@ -47,18 +47,50 @@
 
 
   <script>
+  const formTitles = {
+  "drag-drop": "Drag & Drop",
+  "audio-image": "Audio + Image",
+  "match-image": "Match Image",
+  "mcq-text": "MCQ Text",
+  "true-false": "True / False",
+  };
+
    function loadForm(type) {
     fetch("form-loader.php?type=" + type)
       .then(response => response.text())
       .then(data => {
 
-          const wrapper = document.createElement("div");
-          wrapper.innerHTML = data;
+          const wrapper = document.createElement("section");
+          wrapper.className = "relative border border-gray-200 rounded-2xl bg-gray-50";
+
+          const actions = document.createElement("div");
+          actions.className = "sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white rounded-t-2xl";
+
+          const formLabel = document.createElement("p");
+          formLabel.className = "text-sm font-medium text-gray-600";
+          formLabel.textContent = formTitles[type] ?? "Question Form";
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "rounded-md border border-red-300 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-50";
+          removeButton.textContent = "x";
+          removeButton.addEventListener("click", () => {
+            wrapper.remove();
+          });
+
+          actions.appendChild(formLabel);
+          actions.appendChild(removeButton);
+
+          const content = document.createElement("div");
+          content.innerHTML = data;
+
+          wrapper.appendChild(actions);
+          wrapper.appendChild(content);
 
           document.getElementById("formContainer")
                   .appendChild(wrapper);
 
-          initQuestion(type, wrapper);
+           initQuestion(type, content);
       });
     }
   </script>
