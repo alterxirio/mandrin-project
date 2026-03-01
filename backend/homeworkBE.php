@@ -9,8 +9,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Retrieve Homework Metadata from the single POST request
+$homeworkTitle = $_POST['homework_name'] ?? '';
+$classSelect   = $_POST['class_id'] ?? '';
+$dueDate       = $_POST['due_date'] ?? null;
+$description   = 'Generated from add-work form';
+
 $payload = $_POST['questions'] ?? '';
 $questions = json_decode($payload, true);
+
+// Validation
+if (empty($homeworkTitle) || empty($classSelect)) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'Sila isi Nama Kerja Rumah dan Pilih Kelas.']);
+    exit;
+}
 
 if (!is_array($questions) || count($questions) === 0) {
     http_response_code(422);
@@ -53,23 +66,21 @@ $joinAsCsv = function (array $values) {
 mysqli_begin_transaction($con);
 
 try {
-    $title = 'Homework ' . date('Y-m-d H:i:s');
-    $description = 'Generated from add-work form';
-    $dueDate = date('Y-m-d', strtotime('+7 days'));
-
-    $homeworkStmt = mysqli_prepare($con, 'INSERT INTO homework (title, description, due_date) VALUES (?, ?, ?)');
-    mysqli_stmt_bind_param($homeworkStmt, 'sss', $title, $description, $dueDate);
+    // 1. Insert into homework table first
+    $homeworkStmt = mysqli_prepare($con, 'INSERT INTO homework (title, description, class, due_date) VALUES (?, ?, ?, ?)');
+    mysqli_stmt_bind_param($homeworkStmt, 'ssss', $homeworkTitle, $description, $classSelect, $dueDate);
 
     if (!mysqli_stmt_execute($homeworkStmt)) {
-        throw new Exception('Gagal simpan homework.');
+        throw new Exception('Gagal simpan maklumat kerja rumah.');
     }
 
     $homeworkId = mysqli_insert_id($con);
 
+    // 2. Prepare Question Statement
     $questionStmt = mysqli_prepare(
         $con,
-        'INSERT INTO questions (homework_id, type, question_text, option_a, option_b, option_c, option_d, correct_answer, audio_file, image_file)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO questions (homework_id, type, question_text, option_a, option_b, option_c, option_d, audioImage_label, correct_answer, audio_file, image_file)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     foreach ($questions as $index => $question) {
@@ -77,13 +88,8 @@ try {
         $questionText = trim($question['question_text'] ?? '');
 
         $dbType = 'mcq';
-        $optionA = null;
-        $optionB = null;
-        $optionC = null;
-        $optionD = null;
-        $correctAnswer = null;
-        $audioPath = null;
-        $imagePath = null;
+        $optionA = $optionB = $optionC = $optionD = null;
+        $audioImageLabel = $correctAnswer = $audioPath = $imagePath = null;
 
         if ($type === 'mcq-text') {
             $dbType = 'mcq';
@@ -105,96 +111,49 @@ try {
         } elseif ($type === 'true-false') {
             $dbType = 'truefalse';
             $correctAnswer = $question['correct_answer'] ?? null;
-
-            $audioPaths = [];
-            $imagePaths = [];
-
             if (!empty($question['image_key'])) {
-                $savedImage = $saveUpload($question['image_key'], '../media/homework/images');
-                if ($savedImage) {
-                    $imagePaths[] = $savedImage;
-                }
+                $imagePath = $saveUpload($question['image_key'], '../media/homework/images');
             }
-
-            if (!empty($question['audio_key'])) {
-                $savedAudio = $saveUpload($question['audio_key'], '../media/homework/audio');
-                if ($savedAudio) {
-                    $audioPaths[] = $savedAudio;
-                }
-            }
-
-            $audioPath = $joinAsCsv($audioPaths);
-            $imagePath = $joinAsCsv($imagePaths);
         } elseif ($type === 'audio-image') {
             $dbType = 'listening';
             $choices = $question['choices'] ?? [];
-
             $labels = [];
-            $imagePaths = [];
-            $audioPaths = [];
+            $choiceImagePaths = [];
 
             foreach ($choices as $choice) {
                 $label = trim($choice['label'] ?? '');
-                if ($label !== '') {
-                    $labels[] = $label;
-                }
-
-                if (!empty($choice['is_correct']) && $label !== '') {
-                    $correctAnswer = $label;
-                }
-
+                if ($label !== '') $labels[] = $label;
+                if (!empty($choice['is_correct']) && $label !== '') $correctAnswer = $label;
                 if (!empty($choice['image_key'])) {
-                    $savedImage = $saveUpload($choice['image_key'], '../media/homework/images');
-                    if ($savedImage) {
-                        $imagePaths[] = $savedImage;
-                    }
+                    $saved = $saveUpload($choice['image_key'], '../media/homework/images');
+                    if ($saved) $choiceImagePaths[] = $saved;
                 }
             }
-
-            if (!empty($labels)) {
-                $correctAnswer = $joinAsCsv($labels);
-            }
-
+            $audioImageLabel = $joinAsCsv($labels);
+            $imagePath = $joinAsCsv($choiceImagePaths);
             if (!empty($question['audio_key'])) {
-                $savedAudio = $saveUpload($question['audio_key'], '../media/homework/audio');
-                if ($savedAudio) {
-                    $audioPaths[] = $savedAudio;
-                }
+                $audioPath = $saveUpload($question['audio_key'], '../media/homework/audio');
             }
-
-            $audioPath = $joinAsCsv($audioPaths);
-            $imagePath = $joinAsCsv($imagePaths);
         } elseif ($type === 'match-image') {
             $dbType = 'picture';
             $pairs = array_values(array_filter($question['pairs'] ?? [], function ($pair) {
                 return trim($pair['word'] ?? '') !== '';
             }));
-
             if (count($pairs) > 0) {
-                $imagePaths = [];
-                $pairWords = array_map(function ($pair) {
-                    return $pair['word'] ?? '';
-                }, $pairs);
-
+                $pairWords = array_map(fn($p) => $p['word'], $pairs);
                 $correctAnswer = $joinAsCsv($pairWords);
-
+                $pairImages = [];
                 foreach ($pairs as $pair) {
                     if (!empty($pair['image_key'])) {
-                        $savedImage = $saveUpload($pair['image_key'], '../media/homework/images');
-                        if ($savedImage) {
-                            $imagePaths[] = $savedImage;
-                        }
+                        $saved = $saveUpload($pair['image_key'], '../media/homework/images');
+                        if ($saved) $pairImages[] = $saved;
                     }
                 }
-
-                $imagePath = $joinAsCsv($imagePaths);
+                $imagePath = $joinAsCsv($pairImages);
             }
         } elseif ($type === 'drag-drop') {
             $dbType = 'rearrange';
-            $words = array_values(array_filter($question['words'] ?? [], function ($word) {
-                return trim($word) !== '';
-            }));
-
+            $words = array_values(array_filter($question['words'] ?? [], fn($w) => trim($w) !== ''));
             $correctAnswer = $joinAsCsv($words);
         }
 
@@ -204,7 +163,7 @@ try {
 
         mysqli_stmt_bind_param(
             $questionStmt,
-            'isssssssss',
+            'issssssssss',
             $homeworkId,
             $dbType,
             $questionText,
@@ -212,20 +171,22 @@ try {
             $optionB,
             $optionC,
             $optionD,
+            $audioImageLabel,
             $correctAnswer,
             $audioPath,
             $imagePath
         );
 
         if (!mysqli_stmt_execute($questionStmt)) {
-            throw new Exception('Gagal simpan soalan.');
+            throw new Exception('Gagal simpan soalan pada indeks ' . $index);
         }
     }
 
     mysqli_commit($con);
-    echo json_encode(['success' => true, 'message' => 'Semua soalan berjaya disimpan.']);
+    echo json_encode(['success' => true, 'message' => 'Kerja rumah dan semua soalan berjaya disimpan.']);
 } catch (Exception $e) {
     mysqli_rollback($con);
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+?>

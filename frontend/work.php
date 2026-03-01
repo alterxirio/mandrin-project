@@ -1,3 +1,4 @@
+<?php include('../config/config.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,31 +69,28 @@
           </tr>
         </thead>
 
+        <?php $sql = "SELECT * from homework";
+        $result = mysqli_query($con, $sql); ?>
+        
         <tbody class="divide-y">
-          <tr class="hover:bg-gray-50 border-gray-300 transition">
-            <td class="px-8 py-5 font-medium">
-              Mandarin Homework 1
-              <p class="text-xs text-gray-500 mt-1">Due: 30 Jan 2026</p>
-            </td>
-            <td class="px-8 py-5 text-right">
-              <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
-                View
-              </button>
-            </td>
-          </tr>
 
-          <tr class="hover:bg-gray-50 border-gray-300 transition">
-            <td class="px-8 py-5 font-medium">
-              Essay Writing
-              <p class="text-xs text-gray-500 mt-1">Due: 2 Feb 2026</p>
-            </td>
-            <td class="px-8 py-5 text-right">
-              <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
-                View
-              </button>
-            </td>
-          </tr>
+          <?php while($row = mysqli_fetch_assoc($result)) { ?>
 
+            <tr class="hover:bg-gray-50 border-gray-300 transition">
+              <td class="px-8 py-5 font-medium">
+                <?php echo $row['title']; ?>
+                <p class="text-xs text-gray-500 mt-1">Due: <?php echo $row['due_date']; ?></p>
+              </td>
+              <td class="px-8 py-5 text-right">
+                <a href="view-work.php?id=<?php echo $row['id']; ?>">
+                  <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                    View
+                  </button>
+                </a>
+              </td>
+            </tr>
+
+          <?php } ?>
         </tbody>
       </table>
     </div>
