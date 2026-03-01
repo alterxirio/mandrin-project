@@ -102,6 +102,38 @@ try {
             }
         } elseif ($type === 'audio-image') {
             $dbType = 'listening';
+            $choices = $question['choices'] ?? [];
+
+            $labels = [];
+            $imagePaths = [];
+
+            foreach ($choices as $choice) {
+                $label = trim($choice['label'] ?? '');
+                if ($label !== '') {
+                    $labels[] = $label;
+                }
+
+                if (!empty($choice['is_correct']) && $label !== '') {
+                    $correctAnswer = $label;
+                }
+
+                if (!empty($choice['image_key'])) {
+                    $savedImage = $saveUpload($choice['image_key'], '../media/homework/images');
+                    if ($savedImage) {
+                        $imagePaths[] = $savedImage;
+                    }
+                }
+            }
+
+            if (!empty($labels)) {
+                // multiple input guna implode
+                $questionText = trim(($questionText !== '' ? $questionText . ' | ' : '') . implode(',', $labels));
+            }
+
+            if (!empty($imagePaths)) {
+                $imagePath = implode(',', $imagePaths);
+            }
+
             $choices = array_values(array_filter($question['choices'] ?? [], function ($choice) {
                 return trim($choice['label'] ?? '') !== '';
             }));
