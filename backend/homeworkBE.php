@@ -81,7 +81,6 @@ try {
                 return trim($choice['text'] ?? '') !== '';
             }));
 
-            // MCQ kekal 4 atribut berasingan
             $optionA = $choices[0]['text'] ?? null;
             $optionB = $choices[1]['text'] ?? null;
             $optionC = $choices[2]['text'] ?? null;
@@ -95,8 +94,9 @@ try {
             }
         } elseif ($type === 'true-false') {
             $dbType = 'truefalse';
-            $correctAnswer = trim($question['correct_answer'] ?? '');
-
+            $optionA = 'true';
+            $optionB = 'false';
+            $correctAnswer = $question['correct_answer'] ?? null;
             if (!empty($question['image_key'])) {
                 $imagePath = $saveUpload($question['image_key'], '../media/homework/images');
             }
@@ -134,36 +134,48 @@ try {
                 $imagePath = implode(',', $imagePaths);
             }
 
+            $choices = array_values(array_filter($question['choices'] ?? [], function ($choice) {
+                return trim($choice['label'] ?? '') !== '';
+            }));
+
+            $optionA = $choices[0]['label'] ?? null;
+            $optionB = $choices[1]['label'] ?? null;
+            $optionC = $choices[2]['label'] ?? null;
+            $optionD = $choices[3]['label'] ?? null;
+
+            foreach ($choices as $choice) {
+                if (!empty($choice['is_correct'])) {
+                    $correctAnswer = $choice['label'] ?? null;
+                    if (!empty($choice['image_key'])) {
+                        $imagePath = $saveUpload($choice['image_key'], '../media/homework/images');
+                    }
+                    break;
+                }
+            }
+
             if (!empty($question['audio_key'])) {
                 $audioPath = $saveUpload($question['audio_key'], '../media/homework/audio');
             }
         } elseif ($type === 'match-image') {
             $dbType = 'picture';
-            $pairs = $question['pairs'] ?? [];
+            $pairs = array_values(array_filter($question['pairs'] ?? [], function ($pair) {
+                return trim($pair['word'] ?? '') !== '';
+            }));
 
-            $words = [];
-            $imagePaths = [];
+            if (count($pairs) > 0) {
+                $pairWords = array_map(function ($pair) {
+                    return $pair['word'] ?? '';
+                }, $pairs);
 
-            foreach ($pairs as $pair) {
-                $word = trim($pair['word'] ?? '');
-                if ($word !== '') {
-                    $words[] = $word;
+                $optionA = $pairWords[0] ?? null;
+                $optionB = $pairWords[1] ?? null;
+                $optionC = $pairWords[2] ?? null;
+                $optionD = $pairWords[3] ?? null;
+                $correctAnswer = implode(', ', $pairWords);
+
+                if (!empty($pairs[0]['image_key'])) {
+                    $imagePath = $saveUpload($pairs[0]['image_key'], '../media/homework/images');
                 }
-
-                if (!empty($pair['image_key'])) {
-                    $savedImage = $saveUpload($pair['image_key'], '../media/homework/images');
-                    if ($savedImage) {
-                        $imagePaths[] = $savedImage;
-                    }
-                }
-            }
-
-            if (!empty($words)) {
-                $correctAnswer = implode(',', $words);
-            }
-
-            if (!empty($imagePaths)) {
-                $imagePath = implode(',', $imagePaths);
             }
         } elseif ($type === 'drag-drop') {
             $dbType = 'rearrange';
@@ -171,10 +183,14 @@ try {
                 return trim($word) !== '';
             }));
 
-            // contoh simpan: saya,suka,makan ayam
-            // correct_answer: saya suka makan ayam
-            $questionText = trim(($questionText !== '' ? $questionText . ' | ' : '') . implode(',', $words));
-            $correctAnswer = implode(' ', $words);
+            $optionA = $words[0] ?? null;
+            $optionB = $words[1] ?? null;
+            $optionC = $words[2] ?? null;
+            $optionD = $words[3] ?? null;
+            $correctAnswer = trim($question['correct_answer'] ?? '');
+            if ($correctAnswer === '') {
+                $correctAnswer = implode(' ', $words);
+            }
         }
 
         if ($questionText === '') {
