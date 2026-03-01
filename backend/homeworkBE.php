@@ -40,6 +40,16 @@ $saveUpload = function (string $formKey, string $folder) {
     return $path;
 };
 
+$joinAsCsv = function (array $values) {
+    $filtered = array_values(array_filter(array_map(function ($value) {
+        return trim((string)$value);
+    }, $values), function ($value) {
+        return $value !== '';
+    }));
+
+    return empty($filtered) ? null : implode(',', $filtered);
+};
+
 mysqli_begin_transaction($con);
 
 try {
@@ -94,18 +104,34 @@ try {
             }
         } elseif ($type === 'true-false') {
             $dbType = 'truefalse';
-            $optionA = 'true';
-            $optionB = 'false';
             $correctAnswer = $question['correct_answer'] ?? null;
+
+            $audioPaths = [];
+            $imagePaths = [];
+
             if (!empty($question['image_key'])) {
-                $imagePath = $saveUpload($question['image_key'], '../media/homework/images');
+                $savedImage = $saveUpload($question['image_key'], '../media/homework/images');
+                if ($savedImage) {
+                    $imagePaths[] = $savedImage;
+                }
             }
+
+            if (!empty($question['audio_key'])) {
+                $savedAudio = $saveUpload($question['audio_key'], '../media/homework/audio');
+                if ($savedAudio) {
+                    $audioPaths[] = $savedAudio;
+                }
+            }
+
+            $audioPath = $joinAsCsv($audioPaths);
+            $imagePath = $joinAsCsv($imagePaths);
         } elseif ($type === 'audio-image') {
             $dbType = 'listening';
             $choices = $question['choices'] ?? [];
 
             $labels = [];
             $imagePaths = [];
+            $audioPaths = [];
 
             foreach ($choices as $choice) {
                 $label = trim($choice['label'] ?? '');
@@ -126,36 +152,18 @@ try {
             }
 
             if (!empty($labels)) {
-                // multiple input guna implode
-                $questionText = trim(($questionText !== '' ? $questionText . ' | ' : '') . implode(',', $labels));
-            }
-
-            if (!empty($imagePaths)) {
-                $imagePath = implode(',', $imagePaths);
-            }
-
-            $choices = array_values(array_filter($question['choices'] ?? [], function ($choice) {
-                return trim($choice['label'] ?? '') !== '';
-            }));
-
-            $optionA = $choices[0]['label'] ?? null;
-            $optionB = $choices[1]['label'] ?? null;
-            $optionC = $choices[2]['label'] ?? null;
-            $optionD = $choices[3]['label'] ?? null;
-
-            foreach ($choices as $choice) {
-                if (!empty($choice['is_correct'])) {
-                    $correctAnswer = $choice['label'] ?? null;
-                    if (!empty($choice['image_key'])) {
-                        $imagePath = $saveUpload($choice['image_key'], '../media/homework/images');
-                    }
-                    break;
-                }
+                $correctAnswer = $joinAsCsv($labels);
             }
 
             if (!empty($question['audio_key'])) {
-                $audioPath = $saveUpload($question['audio_key'], '../media/homework/audio');
+                $savedAudio = $saveUpload($question['audio_key'], '../media/homework/audio');
+                if ($savedAudio) {
+                    $audioPaths[] = $savedAudio;
+                }
             }
+
+            $audioPath = $joinAsCsv($audioPaths);
+            $imagePath = $joinAsCsv($imagePaths);
         } elseif ($type === 'match-image') {
             $dbType = 'picture';
             $pairs = array_values(array_filter($question['pairs'] ?? [], function ($pair) {
@@ -163,19 +171,23 @@ try {
             }));
 
             if (count($pairs) > 0) {
+                $imagePaths = [];
                 $pairWords = array_map(function ($pair) {
                     return $pair['word'] ?? '';
                 }, $pairs);
 
-                $optionA = $pairWords[0] ?? null;
-                $optionB = $pairWords[1] ?? null;
-                $optionC = $pairWords[2] ?? null;
-                $optionD = $pairWords[3] ?? null;
-                $correctAnswer = implode(', ', $pairWords);
+                $correctAnswer = $joinAsCsv($pairWords);
 
-                if (!empty($pairs[0]['image_key'])) {
-                    $imagePath = $saveUpload($pairs[0]['image_key'], '../media/homework/images');
+                foreach ($pairs as $pair) {
+                    if (!empty($pair['image_key'])) {
+                        $savedImage = $saveUpload($pair['image_key'], '../media/homework/images');
+                        if ($savedImage) {
+                            $imagePaths[] = $savedImage;
+                        }
+                    }
                 }
+
+                $imagePath = $joinAsCsv($imagePaths);
             }
         } elseif ($type === 'drag-drop') {
             $dbType = 'rearrange';
@@ -183,14 +195,7 @@ try {
                 return trim($word) !== '';
             }));
 
-            $optionA = $words[0] ?? null;
-            $optionB = $words[1] ?? null;
-            $optionC = $words[2] ?? null;
-            $optionD = $words[3] ?? null;
-            $correctAnswer = trim($question['correct_answer'] ?? '');
-            if ($correctAnswer === '') {
-                $correctAnswer = implode(' ', $words);
-            }
+            $correctAnswer = $joinAsCsv($words);
         }
 
         if ($questionText === '') {
