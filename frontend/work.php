@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <?php include('../config/config.php'); ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,9 +11,9 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 </head>
-
 <body class="bg-gray-100 min-h-screen">
 <?php include("navbar.php"); ?>
+
 
 <!-- <div class="max-w-7xl h-[25vh] md:h-[75vh] portrait:h-[50vh] mx-auto mt-6 p-4">
   <div class="bg-white rounded-lg shadow-md h-full">
@@ -81,12 +82,30 @@
                 <?php echo $row['title']; ?>
                 <p class="text-xs text-gray-500 mt-1">Due: <?php echo $row['due_date']; ?></p>
               </td>
-              <td class="px-8 py-5 text-right">
-                <a href="view-work.php?id=<?php echo $row['id']; ?>">
-                  <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
-                    View
-                  </button>
-                </a>
+                <td class="px-8 py-5 text-right">
+                  <?php 
+                    // Fetch the submission status for this specific homework and student
+                    $checkSubmission = mysqli_query($con, "SELECT status FROM student_homework_submissions WHERE homework_id = {$row['id']} AND student_id = {$_SESSION['id']}"); 
+                    $submissionStatus = mysqli_fetch_assoc($checkSubmission);
+
+                    // If a submission exists AND the status is 'submitted', show the Green button
+                    if ($submissionStatus && $submissionStatus['status'] == 'submitted') { 
+                  ?>     
+                      <button class="px-4 py-1.5 text-sm rounded-full bg-green-600 text-white cursor-default">
+                        Submitted
+                      </button>
+                  <?php 
+                    } else { 
+                      // If no submission exists OR it's not yet submitted, show the Blue 'View' button
+                  ?>
+                      <a href="view-work.php?id=<?php echo $row['id']; ?>">
+                        <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                          View
+                        </button>
+                      </a>
+                  <?php 
+                    } 
+                  ?>
               </td>
             </tr>
 
@@ -100,6 +119,7 @@
   <a href="../frontend/add-work.php"><button class="w-[80vw] mt-6 flex items-center justify-center border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 text-3xl" style="border-radius: 22px; height: 150px;">+</button></a>
 </div>
 
+    
 
 </body>
 <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>

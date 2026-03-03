@@ -34,7 +34,7 @@
                         <br>
 
                         <label for="">Kata Laluan</label>
-                        <input type="password" name="password" placeholder="" value="0465">
+                        <input type="password" name="password" placeholder="" value="1245">
 
                         <br>
 
