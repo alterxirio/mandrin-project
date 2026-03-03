@@ -64,7 +64,9 @@ if (isset($_POST['add_name'])) {
         $destination = $folder . $newName;
         move_uploaded_file($_FILES['add_audio']['tmp_name'], $destination);
     } else {
-        $destination = $folder . "defaut-audio.mp3";
+         $destination = $folder . "default-audio.mp3";
+    }
+
     }
 
     $topik_id = $_GET["topik_id"];

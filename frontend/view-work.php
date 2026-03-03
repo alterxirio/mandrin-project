@@ -36,8 +36,15 @@ function normalizePath(?string $path): string
         return '';
     }
 
-    $normalized = preg_replace('#^\.\./#', '../', $path);
-    return $normalized ?? '';
+    $clean = trim(str_replace('\\', '/', $path));
+    if ($clean === '') return '';
+
+    if (preg_match('#^(https?:)?//#i', $clean) || str_starts_with($clean, 'data:')) {
+        return $clean;
+    }
+
+    $clean = preg_replace('#^(\./|\.\./)+#', '', $clean);
+    return '/' . ltrim((string)$clean, '/');
 }
 
 function splitCsv(?string $value): array
@@ -122,8 +129,8 @@ function splitCsv(?string $value): array
                     <?php elseif ($type === 'listening'): ?>
                         <div class="space-y-4">
                             <?php if (!empty($question['audio_file'])): ?>
-                                <audio controls class="w-full">
-                                    <source src="<?php echo htmlspecialchars(normalizePath($question['audio_file'])); ?>" type="audio/mpeg">
+                               <audio controls class="w-full" preload="metadata" src="<?php echo htmlspecialchars(normalizePath($question['audio_file'])); ?>">
+                                    Browser anda tidak menyokong audio.
                                 </audio>
                             <?php endif; ?>
 
