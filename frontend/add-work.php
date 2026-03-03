@@ -178,7 +178,9 @@
                 qData.question_text = wrapper.querySelector('#matchInstruction')?.value?.trim() || 'Padankan perkataan dengan gambar yang betul.';
                 const pairRows = wrapper.querySelectorAll('#matchPairList > div');
                 qData.pairs = Array.from(pairRows).map((row, pIdx) => {
-                    const pair = { word: row.querySelector("input[type='text']")?.value || "" };
+                    const pair = {
+                        word: row.querySelector("input[type='text']")?.value?.trim() || ""
+                    };
                     const imgInput = row.querySelector("input[type='file']");
                     if (imgInput?.files[0]) {
                         const imgKey = `q_${qIdx}_p_${pIdx}_img`;

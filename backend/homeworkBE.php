@@ -90,7 +90,7 @@ try {
             foreach ($q['choices'] as $cIdx => $c) {
                 $labels[] = trim((string)($c['label'] ?? ''));
                 if (!empty($c['is_correct'])) $correct = $c['label'];
-                
+
                 $imgKey = "q_{$index}_c_{$cIdx}_img";
                 $savedImg = saveUpload($imgKey, 'images');
                 $imgPaths[] = $savedImg ?: '';
