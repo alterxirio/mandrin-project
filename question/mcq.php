@@ -10,7 +10,7 @@
 
                 <div>
                     <label for="mcqQuestion" class="block text-sm font-medium text-gray-700 mb-2">Soalan</label>
-                    <textarea id="mcqQuestion" rows="5" placeholder="Tulis soalan di sini..." class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
+                    <textarea id="mcqQuestion" rows="5" placeholder="Tulis soalan di sini..." required class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
                 </div>
 
                 <div class="rounded-xl border border-dashed border-gray-300 p-4 bg-gray-50 space-y-2">

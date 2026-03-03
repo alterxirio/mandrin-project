@@ -12,6 +12,7 @@
                 <div>
                     <label for="matchInstruction" class="block text-sm font-medium text-gray-700 mb-2">Arahan Soalan</label>
                     <input id="matchInstruction" type="text" placeholder="Contoh: Padankan perkataan dengan gambar yang betul."
+                           required
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 

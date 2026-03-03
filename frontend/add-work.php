@@ -22,13 +22,13 @@
             <div class="space-y-4">
                 <div>
                     <label for="homeworkName" class="block text-sm font-medium text-gray-700 mb-1">Nama Kerja Rumah</label>
-                    <input id="homeworkName" type="text" placeholder="Contoh: Latihan Bab 3"
+                    <input id="homeworkName" type="text" placeholder="Contoh: Latihan Bab 3" required
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
                 <div>
                     <label for="classSelect" class="block text-sm font-medium text-gray-700 mb-1">Pilih Kelas</label>
-                    <select id="classSelect"
+                    <select id="classSelect" required
                             class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                         <option value="">-- Pilih Kelas --</option>
                         <option value="1A">Kelas 1A</option>
@@ -40,7 +40,7 @@
 
                 <div>
                     <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-1">Tarikh Akhir</label>
-                    <input id="dueDate" type="date"
+                    <input id="dueDate" type="date" required
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
             </div>
@@ -81,7 +81,6 @@
             <p id="submitStatus" class="mt-3 text-center text-sm text-gray-600"></p>
         </div>
     </div>
-
     <script>
     const formTitles = {
         "drag-drop": "Drag & Drop",
@@ -89,6 +88,23 @@
         "match-image": "Match Image",
         "mcq-text": "MCQ Text",
         "true-false": "True / False",
+    };
+
+    const markInvalid = (field) => {
+        if (!field) return;
+        field.classList.add("border-red-500", "ring-1", "ring-red-300");
+    };
+
+    const clearInvalid = (field) => {
+        if (!field) return;
+        field.classList.remove("border-red-500", "ring-1", "ring-red-300");
+    };
+
+    const focusInvalid = (field, message) => {
+        markInvalid(field);
+        field.scrollIntoView({ behavior: "smooth", block: "center" });
+        field.focus();
+        alert(message);
     };
 
     function loadForm(type) {
@@ -115,21 +131,23 @@
                 actions.appendChild(formLabel);
                 actions.appendChild(removeButton);
 
-                const content = document.createElement("div");
-                content.className = "p-6";
-                content.innerHTML = data;
-                content.querySelectorAll("footer").forEach((footer) => footer.remove());
+                const body = document.createElement("div");
+                body.className = "p-6";
+                body.innerHTML = data;
 
                 wrapper.appendChild(actions);
-                wrapper.appendChild(content);
+                wrapper.appendChild(body);
 
-                document.getElementById("formContainer").appendChild(wrapper);
-                initQuestion(type, content);
-            });
+                const formContainer = document.getElementById("formContainer");
+                formContainer.appendChild(wrapper);
+
+                wrapper.dataset.formId = Date.now().toString() + Math.random().toString(16).slice(2);
+                initQuestion(type, wrapper);
+            })
+            .catch(err => console.error("Error loading form:", err));
     }
 
     function collectQuestions(formData) {
-        // Note: I changed the selector to look for the wrapper specifically
         const wrappers = Array.from(document.querySelectorAll("#formContainer .question-wrapper"));
         const questions = [];
 
@@ -137,30 +155,26 @@
             const type = wrapper.dataset.questionType;
             const qData = { type: type };
 
-            // 1. MCQ TEXT
             if (type === "mcq-text") {
-                // Use class-based selectors or search within the wrapper only
-                qData.question_text = wrapper.querySelector("#mcqQuestion, textarea, input[type='text']")?.value || "";
-                const choiceRows = wrapper.querySelectorAll(".mcq-choice-row, #mcqChoicesGrid > div");
+                qData.question_text = wrapper.querySelector("#mcqQuestion")?.value.trim() || "";
+                const choiceRows = wrapper.querySelectorAll("#mcqChoicesGrid > div");
                 qData.choices = Array.from(choiceRows).map(row => ({
-                    text: row.querySelector("input[type='text']")?.value || "",
+                    text: row.querySelector("input[type='text']")?.value.trim() || "",
                     is_correct: row.querySelector("input[type='radio']")?.checked || false
                 }));
-            } 
-            
-            // 2. AUDIO + IMAGE
-            else if (type === "audio-image") {
-                qData.question_text = wrapper.querySelector("#instruction")?.value || "Dengar dan pilih.";
+            } else if (type === "audio-image") {
+                qData.question_text = wrapper.querySelector("#instruction")?.value.trim() || "";
                 const audioInput = wrapper.querySelector("input[type='file'][accept*='audio']");
                 if (audioInput?.files[0]) {
                     const key = `q_${qIdx}_audio`;
                     formData.append(key, audioInput.files[0]);
                     qData.audio_key = key;
                 }
-                const choiceCards = wrapper.querySelectorAll(".choice-card, #choicesGrid > div");
+
+                const choiceCards = wrapper.querySelectorAll(".choice-card");
                 qData.choices = Array.from(choiceCards).map((card, cIdx) => {
                     const choice = {
-                        label: card.querySelector("input[type='text']")?.value || "",
+                        label: card.querySelector("input[type='text']")?.value.trim() || "",
                         is_correct: card.querySelector("input[type='radio']")?.checked || false
                     };
                     const imgInput = card.querySelector("input[type='file']");
@@ -171,14 +185,11 @@
                     }
                     return choice;
                 });
-            }
-
-            // 3. MATCH IMAGE
-            else if (type === "match-image") {
-                qData.question_text = wrapper.querySelector("#matchInstruction")?.value || "";
-                const pairRows = wrapper.querySelectorAll("#matchPairList > div");
+            } else if (type === "match-image") {
+                qData.question_text = wrapper.querySelector("#matchInstruction")?.value.trim() || "";
+                const pairRows = wrapper.querySelectorAll(".match-pair-row");
                 qData.pairs = Array.from(pairRows).map((row, pIdx) => {
-                    const pair = { word: row.querySelector("input[type='text']")?.value || "" };
+                    const pair = { word: row.querySelector("input[type='text']")?.value.trim() || "" };
                     const imgInput = row.querySelector("input[type='file']");
                     if (imgInput?.files[0]) {
                         const imgKey = `q_${qIdx}_p_${pIdx}_img`;
@@ -187,24 +198,17 @@
                     }
                     return pair;
                 });
-            }
-
-            // 4. TRUE / FALSE
-            else if (type === "true-false") {
-                qData.question_text = wrapper.querySelector("#tfQuestion, textarea, input[type='text']")?.value || "";
+            } else if (type === "true-false") {
+                qData.question_text = wrapper.querySelector("#tfQuestion")?.value.trim() || "";
                 qData.correct_answer = wrapper.querySelector("input[type='radio']:checked")?.value || null;
-                
                 const imgInput = wrapper.querySelector("input[type='file']");
                 if (imgInput?.files?.[0]) {
                     const key = `q_${qIdx}_tf_image`;
                     formData.append(key, imgInput.files[0]);
                     qData.image_key = key;
                 }
-            }
-
-            // 5. DRAG & DROP
-            else if (type === "drag-drop") {
-                qData.question_text = wrapper.querySelector("#instruction, input[type='text']")?.value || "";
+            } else if (type === "drag-drop") {
+                qData.question_text = wrapper.querySelector("#instruction")?.value.trim() || "";
                 qData.words = Array.from(wrapper.querySelectorAll("#wordInputs .word-input"))
                     .map(input => input.value.trim())
                     .filter(Boolean);
@@ -212,59 +216,101 @@
 
             questions.push(qData);
         });
+
         return questions;
     }
 
-      document.getElementById("submitAllQuestions").addEventListener("click", async () => {
-          const submitButton = document.getElementById("submitAllQuestions");
-          const submitStatus = document.getElementById("submitStatus");
-          
-          // 1. Grab Top Info values
-          const hwName = document.getElementById("homeworkName").value.trim();
-          const classId = document.getElementById("classSelect").value;
-          const dueDate = document.getElementById("dueDate").value;
+    function validateQuestionWrappers() {
+        const wrappers = Array.from(document.querySelectorAll("#formContainer .question-wrapper"));
 
-          // 2. Validation
-          if (!hwName || !classId || !dueDate) {
-              alert("Sila lengkapkan maklumat kerja rumah (Nama, Kelas, dan Tarikh).");
-              return;
-          }
+        for (const wrapper of wrappers) {
+            const requiredFields = wrapper.querySelectorAll("input[required], textarea[required], select[required]");
+            for (const field of requiredFields) {
+                clearInvalid(field);
+                const isFile = field.type === "file";
+                const empty = isFile ? !field.files?.length : !field.value.trim();
+                if (empty) {
+                    focusInvalid(field, "Sila lengkapkan semua input yang wajib.");
+                    return false;
+                }
+            }
 
-          const formData = new FormData();
-          const questions = collectQuestions(formData);
+            if (wrapper.dataset.questionType === "audio-image") {
+                const checked = wrapper.querySelector(".choice-card input[type='radio']:checked");
+                if (!checked) {
+                    const first = wrapper.querySelector(".choice-card input[type='radio']");
+                    focusInvalid(first, "Pilih satu jawapan betul untuk soalan audio-image.");
+                    return false;
+                }
+            }
 
-          if (questions.length === 0) {
-              alert("Tambah sekurang-kurangnya satu soalan sebelum hantar.");
-              return;
-          }
+            if (wrapper.dataset.questionType === "mcq-text") {
+                const checked = wrapper.querySelector("#mcqChoicesGrid input[type='radio']:checked");
+                if (!checked) {
+                    const first = wrapper.querySelector("#mcqChoicesGrid input[type='radio']");
+                    focusInvalid(first, "Pilih satu jawapan betul untuk soalan MCQ.");
+                    return false;
+                }
+            }
+        }
 
-          submitButton.disabled = true;
-          submitStatus.textContent = "Sedang menghantar...";
+        return true;
+    }
 
-          // 3. Append Top Info to FormData
-          formData.append("homework_name", hwName);
-          formData.append("class_id", classId);
-          formData.append("due_date", dueDate);
-          
-          // 4. Append the JSON string of questions
-          formData.append("questions", JSON.stringify(questions));
+    document.getElementById("submitAllQuestions").addEventListener("click", async () => {
+        const submitButton = document.getElementById("submitAllQuestions");
+        const submitStatus = document.getElementById("submitStatus");
 
-          try {
-              const response = await fetch("../backend/homeworkBE.php", {
-                  method: "POST",
-                  body: formData,
-              });
-              const result = await response.json();
-              if (!response.ok || !result.success) throw new Error(result.message || "Gagal hantar.");
-              
-              submitStatus.textContent = "Berjaya dihantar!";
-              window.location.href = "work.php";
-          } catch (error) {
-              submitStatus.textContent = error.message;
-              submitButton.disabled = false;
-          }
-      });
-  </script>
+        const requiredHeader = [
+            document.getElementById("homeworkName"),
+            document.getElementById("classSelect"),
+            document.getElementById("dueDate")
+        ];
+
+        for (const field of requiredHeader) {
+            clearInvalid(field);
+            if (!field.value.trim()) {
+                focusInvalid(field, "Sila lengkapkan maklumat kerja rumah (Nama, Kelas, dan Tarikh).");
+                return;
+            }
+        }
+
+        if (!validateQuestionWrappers()) {
+            return;
+        }
+
+        const formData = new FormData();
+        const questions = collectQuestions(formData);
+
+        if (questions.length === 0) {
+            alert("Tambah sekurang-kurangnya satu soalan sebelum hantar.");
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitStatus.textContent = "Sedang menghantar...";
+
+        formData.append("homework_name", requiredHeader[0].value.trim());
+        formData.append("class_id", requiredHeader[1].value);
+        formData.append("due_date", requiredHeader[2].value);
+        formData.append("questions", JSON.stringify(questions));
+
+        try {
+            const response = await fetch("../backend/homeworkBE.php", {
+                method: "POST",
+                body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || "Gagal hantar.");
+
+            submitStatus.textContent = "Berjaya dihantar!";
+            window.location.href = "work.php";
+        } catch (error) {
+            submitStatus.textContent = error.message;
+            submitButton.disabled = false;
+        }
+    });
+    </script>
   <script src="../js/drag-drop.js"></script>
   <script src="../js/mcq-text.js"></script>
   <script src="../js/audio-image.js"></script>

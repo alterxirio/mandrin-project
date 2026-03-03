@@ -20,6 +20,7 @@ function DragDropInit(container) {
         const input = document.createElement("input");
         input.className =
             "word-input w-full rounded-lg border px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500";
+        input.required = true;
         input.placeholder = text;
 
         const remove = document.createElement("button");

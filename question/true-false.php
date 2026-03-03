@@ -9,7 +9,7 @@
             <div class="space-y-4">
                 <div>
                     <label for="tfQuestion" class="block text-sm font-medium text-gray-700 mb-2">Soalan</label>
-                    <textarea id="tfQuestion" rows="5" placeholder="Tulis soalan di sini..." class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
+                    <textarea id="tfQuestion" rows="5" placeholder="Tulis soalan di sini..." required class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
                 </div>
 
                 <div>
@@ -38,12 +38,12 @@
                     <p class="text-sm font-semibold text-gray-700">Jawapan Betul</p>
 
                     <label class="flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="tfCorrectAnswer" value="true" class="text-red-600 focus:ring-red-500">
+                        <input type="radio" name="tfCorrectAnswer" value="true" required class="text-red-600 focus:ring-red-500">
                         Betul
                     </label>
 
                     <label class="flex items-center gap-2 text-sm text-gray-700">
-                        <input type="radio" name="tfCorrectAnswer" value="false" class="text-red-600 focus:ring-red-500">
+                        <input type="radio" name="tfCorrectAnswer" value="false" required class="text-red-600 focus:ring-red-500">
                         Salah
                     </label>
                 </div>

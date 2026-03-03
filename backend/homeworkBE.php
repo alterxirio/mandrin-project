@@ -86,7 +86,9 @@ try {
                 if (!empty($c['is_correct'])) $correct = $c['label'] ?? null;
                 if (!empty($c['image_key'])) {
                     $saved = $saveUpload($c['image_key'], '../media/homework/images');
-                    if ($saved) $imgPaths[] = $saved;
+                    $imgPaths[] = $saved ?: '';
+                } else {
+                    $imgPaths[] = '';
                 }
             }
             $audioLabel = implode(',', $labels);
@@ -101,7 +103,9 @@ try {
                 $words[] = $p['word'] ?? '';
                 if (!empty($p['image_key'])) {
                     $saved = $saveUpload($p['image_key'], '../media/homework/images');
-                    if ($saved) $imgPaths[] = $saved;
+                    $imgPaths[] = $saved ?: '';
+                } else {
+                    $imgPaths[] = '';
                 }
             }
             $correct   = implode(',', $words); // Words in order

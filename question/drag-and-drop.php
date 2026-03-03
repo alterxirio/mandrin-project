@@ -11,6 +11,7 @@
                 <div>
                     <label for="instruction" class="block text-sm font-medium text-gray-700 mb-2">Arahan Soalan</label>
                     <input id="instruction" type="text" placeholder="Contoh: Susun perkataan ini menjadi ayat yang betul."
+                           required
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
@@ -25,19 +26,19 @@
 
                         <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Saya"
-                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" required>
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
 
                         <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Suka"
-                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" required>
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
 
                         <div data-word-row class="flex items-center gap-2">
                             <input type="text" placeholder="Contoh : Belajar mandarin"
-                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm">
+                                class="word-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" required>
                             <button type="button" class="remove-word text-gray-400 hover:text-red-500">✕</button>
                         </div>
 

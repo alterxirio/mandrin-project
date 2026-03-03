@@ -35,6 +35,7 @@ function MCQInit(container) {
 
         const choiceInput = document.createElement("input");
         choiceInput.type = "text";
+        choiceInput.required = true;
         choiceInput.placeholder = "Tulis jawapan di sini...";
         choiceInput.className = "w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:border-red-500 focus:ring-red-500";
 
@@ -43,6 +44,7 @@ function MCQInit(container) {
 
         const correctRadio = document.createElement("input");
         correctRadio.type = "radio";
+        correctRadio.required = true;
         correctRadio.name = `mcqCorrectChoice-${container.dataset.formId || ""}`;
         correctRadio.className = "text-red-600 focus:ring-red-500";
 

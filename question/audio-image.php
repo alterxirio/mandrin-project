@@ -11,6 +11,7 @@
                 <div>
                     <label for="instruction" class="block text-sm font-medium text-gray-700 mb-2">Arahan Soalan</label>
                     <input id="instruction" type="text" placeholder="Contoh: Dengar audio dan pilih gambar yang betul."
+                           required
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
 
@@ -18,6 +19,7 @@
                     <label for="audioUpload" class="block text-sm font-medium text-gray-700 mb-2">Fail Audio</label>
                     <div class="flex items-center gap-3">
                         <input id="audioUpload" type="file" accept="audio/*"
+                               required
                                class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                         <button id="playAudio" type="button"
                                 class="inline-flex items-center rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
