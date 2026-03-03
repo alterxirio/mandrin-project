@@ -129,50 +129,89 @@
     }
 
     function collectQuestions(formData) {
+        // Note: I changed the selector to look for the wrapper specifically
         const wrappers = Array.from(document.querySelectorAll("#formContainer .question-wrapper"));
         const questions = [];
 
-        wrappers.forEach((wrapper, formIndex) => {
+        wrappers.forEach((wrapper, qIdx) => {
             const type = wrapper.dataset.questionType;
-            const question = { type };
+            const qData = { type: type };
 
+            // 1. MCQ TEXT
             if (type === "mcq-text") {
-                question.question_text = wrapper.querySelector("#mcqQuestion")?.value?.trim() || "";
-                question.choices = Array.from(wrapper.querySelectorAll("#mcqChoicesGrid > div")).map((card, choiceIndex) => ({
-                    text: card.querySelector("input[type='text']")?.value?.trim() || "",
-                    is_correct: Boolean(card.querySelector("input[type='radio']")?.checked),
-                    index: choiceIndex,
+                // Use class-based selectors or search within the wrapper only
+                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
+                const choiceRows = wrapper.querySelectorAll(".mcq-choice-row, #mcqChoicesGrid > div");
+                qData.choices = Array.from(choiceRows).map(row => ({
+                    text: row.querySelector("input[type='text']")?.value || "",
+                    is_correct: row.querySelector("input[type='radio']")?.checked || false
                 }));
-            }
-
-            if (type === "audio-image") {
-                question.question_text = wrapper.querySelector("#instruction")?.value?.trim() || "";
-                const audioInput = wrapper.querySelector("#audioUpload");
-                if (audioInput?.files?.[0]) {
-                    const key = `q_${formIndex}_audio`;
+            } 
+            
+            // 2. AUDIO + IMAGE
+            else if (type === "audio-image") {
+                qData.question_text = wrapper.querySelector("#instruction")?.value || "Dengar dan pilih.";
+                const audioInput = wrapper.querySelector("input[type='file'][accept*='audio']");
+                if (audioInput?.files[0]) {
+                    const key = `q_${qIdx}_audio`;
                     formData.append(key, audioInput.files[0]);
-                    question.audio_key = key;
+                    qData.audio_key = key;
                 }
-                question.choices = Array.from(wrapper.querySelectorAll("#choicesGrid > div")).map((card, choiceIndex) => {
-                    const data = {
-                        label: card.querySelector("input[type='text']")?.value?.trim() || "",
-                        is_correct: Boolean(card.querySelector("input[type='radio']")?.checked),
-                        index: choiceIndex,
+                const choiceCards = wrapper.querySelectorAll(".choice-card, #choicesGrid > div");
+                qData.choices = Array.from(choiceCards).map((card, cIdx) => {
+                    const choice = {
+                        label: card.querySelector("input[type='text']")?.value || "",
+                        is_correct: card.querySelector("input[type='radio']")?.checked || false
                     };
-                    const imageInput = card.querySelector("input[type='file']");
-                    if (imageInput?.files?.[0]) {
-                        const key = `q_${formIndex}_choice_${choiceIndex}_image`;
-                        formData.append(key, imageInput.files[0]);
-                        data.image_key = key;
+                    const imgInput = card.querySelector("input[type='file']");
+                    if (imgInput?.files[0]) {
+                        const imgKey = `q_${qIdx}_c_${cIdx}_img`;
+                        formData.append(imgKey, imgInput.files[0]);
+                        choice.image_key = imgKey;
                     }
-                    return data;
+                    return choice;
                 });
             }
-            // ... Add logic for match-image, true-false, drag-drop here as per your original logic
-            questions.push(question);
+
+            // 3. MATCH IMAGE
+            else if (type === "match-image") {
+                const pairRows = wrapper.querySelectorAll(".match-pair-row, #pairsGrid > div");
+                qData.pairs = Array.from(pairRows).map((row, pIdx) => {
+                    const pair = { word: row.querySelector("input[type='text']")?.value || "" };
+                    const imgInput = row.querySelector("input[type='file']");
+                    if (imgInput?.files[0]) {
+                        const imgKey = `q_${qIdx}_p_${pIdx}_img`;
+                        formData.append(imgKey, imgInput.files[0]);
+                        pair.image_key = imgKey;
+                    }
+                    return pair;
+                });
+            }
+
+            // 4. TRUE / FALSE
+            else if (type === "true-false") {
+                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
+                qData.correct_answer = wrapper.querySelector("input[type='radio']:checked")?.value || null;
+                
+                const imgInput = wrapper.querySelector("input[type='file']");
+                if (imgInput?.files?.[0]) {
+                    const key = `q_${qIdx}_tf_image`;
+                    formData.append(key, imgInput.files[0]);
+                    qData.image_key = key;
+                }
+            }
+
+            // 5. DRAG & DROP
+            else if (type === "drag-drop") {
+                const sentence = wrapper.querySelector("textarea, input[type='text']")?.value || "";
+                qData.question_text = sentence;
+                qData.words = sentence.split(" ").filter(word => word.trim() !== "");
+            }
+
+            questions.push(qData);
         });
         return questions;
-      }
+    }
 
       document.getElementById("submitAllQuestions").addEventListener("click", async () => {
           const submitButton = document.getElementById("submitAllQuestions");
