@@ -1,7 +1,7 @@
 function TrueFalseInit(container){
     const imageUpload = container.querySelector("#tfImageUpload");
     const imagePreview = container.querySelector("#tfImagePreview");
-    if(!imageUpload) return;
+    if(!imageUpload || !imagePreview) return;
 
     imageUpload.addEventListener("change",()=>{
         const file=imageUpload.files[0];

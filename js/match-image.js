@@ -1,7 +1,7 @@
 function MatchImageInit(container){
     const pairList = container.querySelector("#matchPairList");
     const addPair = container.querySelector("#matchAddPair");
-    if(!pairList) return;
+    if(!pairList || !addPair) return;
 
     const createPairRow = (index)=>{
         const row = document.createElement("div");

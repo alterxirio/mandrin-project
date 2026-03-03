@@ -5,7 +5,7 @@ function AudioImageInit(container) {
     const audioPreview = container.querySelector("#audioPreview");
     const playAudio = container.querySelector("#playAudio");
 
-    if (!choicesGrid) return;
+    if (!choicesGrid || !addChoice) return;
 
     const refreshChoiceLabels = () => {
         Array.from(choicesGrid.children).forEach((card,index)=>{

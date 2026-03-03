@@ -1,7 +1,7 @@
 function MCQInit(container) {
     const choicesGrid = container.querySelector("#mcqChoicesGrid");
     const addChoice = container.querySelector("#mcqAddChoice");
-    if (!choicesGrid) return;
+    if (!choicesGrid || !addChoice) return;
 
     const refreshChoiceLabels = () => {
         Array.from(choicesGrid.children).forEach((card, index) => {
