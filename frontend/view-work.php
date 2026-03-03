@@ -30,21 +30,34 @@ if ($homeworkId > 0) {
     }
 }
 
-function normalizePath(?string $path): string
-{
-    if (!$path) {
-        return '';
+function normalizePath(?string $path): string {
+    if (!$path) return '';
+
+    $normalized = trim($path);
+    if ($normalized === '') return '';
+
+    // 1. Fix Windows backslashes
+    $normalized = str_replace('\\', '/', $normalized);
+
+    // 2. Ignore remote URLs
+    if (preg_match('#^(https?:)?//#i', $normalized) || preg_match('#^(data|blob):#i', $normalized)) {
+        return $normalized;
     }
 
-    $clean = trim(str_replace('\\', '/', $path));
-    if ($clean === '') return '';
-
-    if (preg_match('#^(https?:)?//#i', $clean) || str_starts_with($clean, 'data:')) {
-        return $clean;
+    // 3. Find the 'media/' folder position
+    // This handles cases where the DB stores 'C:/xampp/htdocs/mandrin-project/media/image.jpg'
+    $mediaPos = stripos($normalized, 'media/');
+    if ($mediaPos !== false) {
+        $normalized = substr($normalized, $mediaPos);
     }
 
-    $clean = preg_replace('#^(\./|\.\./)+#', '', $clean);
-    return '/' . ltrim((string)$clean, '/');
+    // 4. Clean up leading slashes/dots
+    $normalized = ltrim($normalized, './');
+
+    // 5. Assuming your images are in mandrin-project/media/
+    // and this file is in mandrin-project/frontend/
+    // We go up one level to the project root, then into media
+    return '../' . $normalized;
 }
 
 function splitCsv(?string $value): array
