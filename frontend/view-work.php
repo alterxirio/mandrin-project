@@ -69,6 +69,16 @@ function splitCsv(?string $value): array
     $items = array_map('trim', explode(',', $value));
     return array_values(array_filter($items, fn($item) => $item !== ''));
 }
+
+
+function splitCsvKeepingIndex(?string $value): array
+{
+    if ($value === null) {
+        return [];
+    }
+
+    return array_map('trim', explode(',', $value));
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,7 +114,7 @@ function splitCsv(?string $value): array
                     $type = $question['type'];
                     $qId = (int)$question['id'];
                     $labels = splitCsv($question['audioImage_label'] ?? '');
-                    $imagePaths = array_map('normalizePath', splitCsv($question['image_file'] ?? ''));
+                    $imagePaths = array_map('normalizePath', splitCsvKeepingIndex($question['image_file'] ?? null));
                 ?>
                 <article class="question-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4" data-question-id="<?php echo $qId; ?>" data-question-type="<?php echo htmlspecialchars($type); ?>">
                     <header class="space-y-1">
@@ -171,14 +181,19 @@ function splitCsv(?string $value): array
                             </div>
                         </div>
                     <?php elseif ($type === 'picture'): ?>
-                        <?php $words = splitCsv($question['correct_answer'] ?? ''); ?>
+                        <?php
+                            $matchLabels = splitCsv($question['audioImage_label'] ?? '');
+                            if (empty($matchLabels)) {
+                                $matchLabels = splitCsv($question['correct_answer'] ?? '');
+                            }
+                        ?>
                         <div class="space-y-3">
                             <p class="text-sm text-gray-600">Padankan gambar dengan perkataan yang sesuai.</p>
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <?php foreach ($imagePaths as $imageIndex => $imagePath): ?>
                                     <div class="border border-gray-200 rounded-lg p-3 space-y-2">
                                         <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Gambar padanan" class="h-36 w-full object-cover rounded-md">
-                                        <input type="text" class="match-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Jawapan untuk gambar ini" data-match-index="<?php echo $imageIndex; ?>" data-word-hint="<?php echo htmlspecialchars($words[$imageIndex] ?? ''); ?>">
+                                        <input type="text" class="match-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Jawapan untuk gambar ini" data-match-index="<?php echo $imageIndex; ?>" data-word-hint="<?php echo htmlspecialchars($matchLabels[$imageIndex] ?? ''); ?>">
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -186,13 +201,18 @@ function splitCsv(?string $value): array
                     <?php elseif ($type === 'rearrange'): ?>
                         <?php $tokens = splitCsv($question['correct_answer'] ?? ''); shuffle($tokens); ?>
                         <div class="space-y-3">
-                            <p class="text-sm text-gray-600">Susun perkataan ini menjadi ayat yang betul.</p>
-                            <div class="flex flex-wrap gap-2">
+                            <p class="text-sm text-gray-600">Seret perkataan ke ruang jawapan untuk susun ayat yang betul.</p>
+                            <div class="rearrange-bank flex flex-wrap gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
                                 <?php foreach ($tokens as $token): ?>
-                                    <button type="button" class="rearrange-token px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 text-sm text-gray-700 hover:bg-gray-200" data-token="<?php echo htmlspecialchars($token); ?>"><?php echo htmlspecialchars($token); ?></button>
+                                    <button type="button" draggable="true" class="rearrange-token px-3 py-1.5 rounded-full bg-white border border-gray-300 text-sm text-gray-700 hover:bg-gray-100" data-token="<?php echo htmlspecialchars($token); ?>"><?php echo htmlspecialchars($token); ?></button>
                                 <?php endforeach; ?>
                             </div>
-                            <textarea rows="2" class="rearrange-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Bina ayat anda di sini..."></textarea>
+                            <div class="rearrange-dropzone min-h-14 rounded-lg border-2 border-dashed border-gray-300 bg-white px-3 py-2 flex flex-wrap gap-2" aria-label="Drop words here"></div>
+                            <div class="flex items-center justify-between gap-3">
+                                <p class="text-xs text-gray-500">Tip: anda boleh seret semula token ke bank untuk buang susunan.</p>
+                                <button type="button" class="rearrange-reset text-xs font-semibold text-red-600 hover:text-red-700">Reset</button>
+                            </div>
+                            <textarea rows="2" class="rearrange-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Jawapan akan diisi automatik..." readonly></textarea>
                         </div>
                     <?php else: ?>
                         <textarea rows="3" class="generic-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Tulis jawapan anda di sini..."></textarea>
@@ -213,16 +233,84 @@ function splitCsv(?string $value): array
     const list = document.getElementById('questionList');
     if (!list) return;
 
-    list.addEventListener('click', (event) => {
+    const updateRearrangeAnswer = (card) => {
+        const textarea = card.querySelector('.rearrange-answer');
+        const dropzone = card.querySelector('.rearrange-dropzone');
+        if (!textarea || !dropzone) return;
+
+        const ordered = Array.from(dropzone.querySelectorAll('.rearrange-token'))
+            .map((token) => token.dataset.token || token.textContent || '')
+            .map((value) => value.trim())
+            .filter(Boolean);
+
+        textarea.value = ordered.join(' ');
+    };
+
+    list.addEventListener('dragstart', (event) => {
         const tokenButton = event.target.closest('.rearrange-token');
         if (!tokenButton) return;
 
         const card = tokenButton.closest('.question-card');
-        const textarea = card?.querySelector('.rearrange-answer');
-        if (!textarea) return;
+        if (!card) return;
 
-        const token = tokenButton.dataset.token || '';
-        textarea.value = textarea.value.trim() ? `${textarea.value.trim()} ${token}` : token;
+        tokenButton.classList.add('opacity-60');
+        event.dataTransfer.setData('text/plain', tokenButton.dataset.token || tokenButton.textContent || '');
+        event.dataTransfer.setData('source-card-id', card.dataset.questionId || '');
+        event.dataTransfer.effectAllowed = 'move';
+        card.dataset.draggingToken = tokenButton.dataset.token || tokenButton.textContent || '';
+    });
+
+    list.addEventListener('dragend', (event) => {
+        const tokenButton = event.target.closest('.rearrange-token');
+        if (tokenButton) tokenButton.classList.remove('opacity-60');
+    });
+
+    list.addEventListener('dragover', (event) => {
+        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank');
+        if (!dropzone) return;
+        event.preventDefault();
+        dropzone.classList.add('border-red-400');
+    });
+
+    list.addEventListener('dragleave', (event) => {
+        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank');
+        if (!dropzone) return;
+        dropzone.classList.remove('border-red-400');
+    });
+
+    list.addEventListener('drop', (event) => {
+        const targetZone = event.target.closest('.rearrange-dropzone, .rearrange-bank');
+        if (!targetZone) return;
+        event.preventDefault();
+        targetZone.classList.remove('border-red-400');
+
+        const card = targetZone.closest('.question-card');
+        if (!card) return;
+
+        const sourceCardId = event.dataTransfer.getData('source-card-id');
+        const tokenText = event.dataTransfer.getData('text/plain').trim();
+        if (!tokenText || sourceCardId !== (card.dataset.questionId || '')) return;
+
+        const draggingToken = card.querySelector('.rearrange-token.opacity-60');
+        if (!draggingToken) return;
+
+        targetZone.appendChild(draggingToken);
+        updateRearrangeAnswer(card);
+    });
+
+    list.addEventListener('click', (event) => {
+        const resetBtn = event.target.closest('.rearrange-reset');
+        if (!resetBtn) return;
+
+        const card = resetBtn.closest('.question-card');
+        if (!card) return;
+
+        const bank = card.querySelector('.rearrange-bank');
+        const dropzone = card.querySelector('.rearrange-dropzone');
+        if (!bank || !dropzone) return;
+
+        Array.from(dropzone.querySelectorAll('.rearrange-token')).forEach((token) => bank.appendChild(token));
+        updateRearrangeAnswer(card);
     });
 
     const submitButton = document.getElementById('submitStudentAnswers');

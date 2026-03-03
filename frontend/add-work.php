@@ -140,8 +140,8 @@
             // 1. MCQ TEXT
             if (type === "mcq-text") {
                 // Use class-based selectors or search within the wrapper only
-                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
-                const choiceRows = wrapper.querySelectorAll(".mcq-choice-row, #mcqChoicesGrid > div");
+                qData.question_text = wrapper.querySelector('#mcqQuestion')?.value?.trim() || "";
+                const choiceRows = wrapper.querySelectorAll('#mcqChoicesGrid > div');
                 qData.choices = Array.from(choiceRows).map(row => ({
                     text: row.querySelector("input[type='text']")?.value || "",
                     is_correct: row.querySelector("input[type='radio']")?.checked || false
@@ -157,7 +157,7 @@
                     formData.append(key, audioInput.files[0]);
                     qData.audio_key = key;
                 }
-                const choiceCards = wrapper.querySelectorAll(".choice-card, #choicesGrid > div");
+                const choiceCards = wrapper.querySelectorAll('#choicesGrid > div');
                 qData.choices = Array.from(choiceCards).map((card, cIdx) => {
                     const choice = {
                         label: card.querySelector("input[type='text']")?.value || "",
@@ -175,9 +175,12 @@
 
             // 3. MATCH IMAGE
             else if (type === "match-image") {
-                const pairRows = wrapper.querySelectorAll(".match-pair-row, #pairsGrid > div");
+                qData.question_text = wrapper.querySelector('#matchInstruction')?.value?.trim() || 'Padankan perkataan dengan gambar yang betul.';
+                const pairRows = wrapper.querySelectorAll('#matchPairList > div');
                 qData.pairs = Array.from(pairRows).map((row, pIdx) => {
-                    const pair = { word: row.querySelector("input[type='text']")?.value || "" };
+                    const pair = {
+                        word: row.querySelector("input[type='text']")?.value?.trim() || ""
+                    };
                     const imgInput = row.querySelector("input[type='file']");
                     if (imgInput?.files[0]) {
                         const imgKey = `q_${qIdx}_p_${pIdx}_img`;
@@ -190,7 +193,7 @@
 
             // 4. TRUE / FALSE
             else if (type === "true-false") {
-                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
+                qData.question_text = wrapper.querySelector('#tfQuestion')?.value?.trim() || '';
                 qData.correct_answer = wrapper.querySelector("input[type='radio']:checked")?.value || null;
                 
                 const imgInput = wrapper.querySelector("input[type='file']");
@@ -203,9 +206,13 @@
 
             // 5. DRAG & DROP
             else if (type === "drag-drop") {
-                const sentence = wrapper.querySelector("textarea, input[type='text']")?.value || "";
-                qData.question_text = sentence;
-                qData.words = sentence.split(" ").filter(word => word.trim() !== "");
+                const instruction = wrapper.querySelector('#instruction')?.value?.trim() || 'Susun perkataan ini menjadi ayat yang betul.';
+                const words = Array.from(wrapper.querySelectorAll('#wordInputs .word-input'))
+                    .map(input => input.value.trim())
+                    .filter(Boolean);
+
+                qData.question_text = instruction;
+                qData.words = words;
             }
 
             questions.push(qData);
