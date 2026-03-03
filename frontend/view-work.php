@@ -69,6 +69,16 @@ function splitCsv(?string $value): array
     $items = array_map('trim', explode(',', $value));
     return array_values(array_filter($items, fn($item) => $item !== ''));
 }
+
+
+function splitCsvKeepingIndex(?string $value): array
+{
+    if ($value === null) {
+        return [];
+    }
+
+    return array_map('trim', explode(',', $value));
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,7 +114,7 @@ function splitCsv(?string $value): array
                     $type = $question['type'];
                     $qId = (int)$question['id'];
                     $labels = splitCsv($question['audioImage_label'] ?? '');
-                    $imagePaths = array_map('normalizePath', splitCsv($question['image_file'] ?? ''));
+                    $imagePaths = array_map('normalizePath', splitCsvKeepingIndex($question['image_file'] ?? null));
                 ?>
                 <article class="question-card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4" data-question-id="<?php echo $qId; ?>" data-question-type="<?php echo htmlspecialchars($type); ?>">
                     <header class="space-y-1">

@@ -88,12 +88,12 @@ try {
             $dbType = 'listening';
             $labels = []; $imgPaths = [];
             foreach ($q['choices'] as $cIdx => $c) {
-                $labels[] = $c['label'];
+                $labels[] = trim((string)($c['label'] ?? ''));
                 if (!empty($c['is_correct'])) $correct = $c['label'];
                 
                 $imgKey = "q_{$index}_c_{$cIdx}_img";
                 $savedImg = saveUpload($imgKey, 'images');
-                if ($savedImg) $imgPaths[] = $savedImg;
+                $imgPaths[] = $savedImg ?: '';
             }
             $audioLabel = implode(',', $labels);
             $imagePath  = implode(',', $imgPaths);
@@ -103,10 +103,10 @@ try {
             $dbType = 'picture';
             $words = []; $imgPaths = [];
             foreach ($q['pairs'] as $pIdx => $p) {
-                $words[] = $p['word'];
+                $words[] = trim((string)($p['word'] ?? ''));
                 $imgKey = "q_{$index}_p_{$pIdx}_img";
                 $savedImg = saveUpload($imgKey, 'images');
-                if ($savedImg) $imgPaths[] = $savedImg;
+                $imgPaths[] = $savedImg ?: '';
             }
             $correct   = implode(',', $words);
             $imagePath = implode(',', $imgPaths);
