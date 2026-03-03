@@ -118,7 +118,10 @@ try {
         }
         elseif ($type === 'drag-drop') {
             $dbType = 'rearrange';
-            $correct = implode(',', $q['words'] ?? []);
+            $correct = trim((string)($q['correct_answer'] ?? ''));
+            if ($correct === '') {
+                $correct = implode(',', $q['words'] ?? []);
+            }
         }
 
         mysqli_stmt_bind_param($qStmt, 'issssssssss', 

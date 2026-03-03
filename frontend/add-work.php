@@ -206,9 +206,14 @@
 
             // 5. DRAG & DROP
             else if (type === "drag-drop") {
-                const sentence = wrapper.querySelector('#answerSentence')?.value?.trim() || '';
-                qData.question_text = sentence;
-                qData.words = sentence.split(" ").filter(word => word.trim() !== "");
+                const instruction = wrapper.querySelector('#instruction')?.value?.trim() || 'Susun perkataan ini menjadi ayat yang betul.';
+                const words = Array.from(wrapper.querySelectorAll('.word-input'))
+                    .map((input) => input.value.trim())
+                    .filter((word) => word.length > 0);
+
+                qData.question_text = instruction;
+                qData.words = words;
+                qData.correct_answer = words.join(',');
             }
 
             questions.push(qData);
