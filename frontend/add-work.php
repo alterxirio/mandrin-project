@@ -157,7 +157,7 @@
                     formData.append(key, audioInput.files[0]);
                     qData.audio_key = key;
                 }
-                const choiceCards = wrapper.querySelectorAll('#choicesGrid > div');
+                const choiceCards = wrapper.querySelectorAll('#choicesGrid > div')
                 qData.choices = Array.from(choiceCards).map((card, cIdx) => {
                     const choice = {
                         label: card.querySelector("input[type='text']")?.value || "",
@@ -206,13 +206,9 @@
 
             // 5. DRAG & DROP
             else if (type === "drag-drop") {
-                const instruction = wrapper.querySelector('#instruction')?.value?.trim() || 'Susun perkataan ini menjadi ayat yang betul.';
-                const words = Array.from(wrapper.querySelectorAll('#wordInputs .word-input'))
-                    .map(input => input.value.trim())
-                    .filter(Boolean);
-
-                qData.question_text = instruction;
-                qData.words = words;
+                const sentence = wrapper.querySelector('#answerSentence')?.value?.trim() || '';
+                qData.question_text = sentence;
+                qData.words = sentence.split(" ").filter(word => word.trim() !== "");
             }
 
             questions.push(qData);
