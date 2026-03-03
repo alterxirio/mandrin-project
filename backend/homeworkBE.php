@@ -34,6 +34,12 @@ $saveUpload = function (string $formKey, string $folder) {
     return move_uploaded_file($_FILES[$formKey]['tmp_name'], $path) ? $path : null;
 };
 
+$clip = function (?string $value, int $max) {
+    if ($value === null) return null;
+    return substr($value, 0, $max);
+};
+
+
 // Start Database Transaction
 mysqli_begin_transaction($con);
 
@@ -53,10 +59,11 @@ try {
     );
 
     foreach ($questions as $index => $q) {
-        $type = $q['type'];
+        $type = $q['type'] ?? '';
         $dbType = 'mcq';
         $optionA = $optionB = $optionC = $optionD = $audioLabel = $correct = $audioPath = $imagePath = null;
-        $qText = $q['question_text'] ?: "Soalan " . ($index + 1);
+        $qText = $q['question_text'] ?? '';
+        $qText = trim($qText) !== '' ? $qText : "Soalan " . ($index + 1);;
 
         // --- TYPE LOGIC ---
 
@@ -66,7 +73,7 @@ try {
             $optionB = $q['choices'][1]['text'] ?? null;
             $optionC = $q['choices'][2]['text'] ?? null;
             $optionD = $q['choices'][3]['text'] ?? null;
-            foreach ($q['choices'] as $c) {
+             foreach (($q['choices'] ?? []) as $c) {
                 if (!empty($c['is_correct'])) $correct = $c['text'];
             }
         } 
@@ -74,9 +81,9 @@ try {
         elseif ($type === 'audio-image') {
             $dbType = 'listening';
             $labels = []; $imgPaths = [];
-            foreach ($q['choices'] as $c) {
-                $labels[] = $c['label'];
-                if (!empty($c['is_correct'])) $correct = $c['label'];
+            foreach (($q['choices'] ?? []) as $c) {
+                $labels[] = $c['label'] ?? '';
+                if (!empty($c['is_correct'])) $correct = $c['label'] ?? null;
                 if (!empty($c['image_key'])) {
                     $saved = $saveUpload($c['image_key'], '../media/homework/images');
                     if ($saved) $imgPaths[] = $saved;
@@ -90,8 +97,8 @@ try {
         elseif ($type === 'match-image') {
             $dbType = 'picture';
             $words = []; $imgPaths = [];
-            foreach ($q['pairs'] as $p) {
-                $words[] = $p['word'];
+            foreach (($q['pairs'] ?? []) as $p) {
+                $words[] = $p['word'] ?? '';
                 if (!empty($p['image_key'])) {
                     $saved = $saveUpload($p['image_key'], '../media/homework/images');
                     if ($saved) $imgPaths[] = $saved;
@@ -103,16 +110,28 @@ try {
 
         elseif ($type === 'true-false') {
             $dbType = 'truefalse';
-            $correct = $q['correct_answer'];
+            $correct = $q['correct_answer'] ?? null;
             $imagePath = $saveUpload($q['image_key'] ?? '', '../media/homework/images');
         }
 
         elseif ($type === 'drag-drop') {
             $dbType = 'rearrange';
-            $correct = implode(',', $q['words'] ?? []);
+            $words = array_values(array_filter(($q['words'] ?? []), fn($w) => trim((string)$w) !== ''));
+            $correct = implode(',', $words);
         }
 
         // 6. Bind and Execute
+        
+        $qText = $clip($qText, 1000);
+        $optionA = $clip($optionA, 255);
+        $optionB = $clip($optionB, 255);
+        $optionC = $clip($optionC, 255);
+        $optionD = $clip($optionD, 255);
+        $audioLabel = $clip($audioLabel, 232);
+        $correct = $clip($correct, 1000);
+        $audioPath = $clip($audioPath, 255);
+        $imagePath = $clip($imagePath, 1000);
+
         mysqli_stmt_bind_param($qStmt, 'issssssssss', 
             $homeworkId, $dbType, $qText, $optionA, $optionB, $optionC, $optionD, $audioLabel, $correct, $audioPath, $imagePath
         );

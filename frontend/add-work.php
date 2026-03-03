@@ -140,7 +140,7 @@
             // 1. MCQ TEXT
             if (type === "mcq-text") {
                 // Use class-based selectors or search within the wrapper only
-                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
+                qData.question_text = wrapper.querySelector("#mcqQuestion, textarea, input[type='text']")?.value || "";
                 const choiceRows = wrapper.querySelectorAll(".mcq-choice-row, #mcqChoicesGrid > div");
                 qData.choices = Array.from(choiceRows).map(row => ({
                     text: row.querySelector("input[type='text']")?.value || "",
@@ -175,7 +175,8 @@
 
             // 3. MATCH IMAGE
             else if (type === "match-image") {
-                const pairRows = wrapper.querySelectorAll(".match-pair-row, #pairsGrid > div");
+                qData.question_text = wrapper.querySelector("#matchInstruction")?.value || "";
+                const pairRows = wrapper.querySelectorAll("#matchPairList > div");
                 qData.pairs = Array.from(pairRows).map((row, pIdx) => {
                     const pair = { word: row.querySelector("input[type='text']")?.value || "" };
                     const imgInput = row.querySelector("input[type='file']");
@@ -190,7 +191,7 @@
 
             // 4. TRUE / FALSE
             else if (type === "true-false") {
-                qData.question_text = wrapper.querySelector("input[type='text']")?.value || "";
+                qData.question_text = wrapper.querySelector("#tfQuestion, textarea, input[type='text']")?.value || "";
                 qData.correct_answer = wrapper.querySelector("input[type='radio']:checked")?.value || null;
                 
                 const imgInput = wrapper.querySelector("input[type='file']");
@@ -203,9 +204,10 @@
 
             // 5. DRAG & DROP
             else if (type === "drag-drop") {
-                const sentence = wrapper.querySelector("textarea, input[type='text']")?.value || "";
-                qData.question_text = sentence;
-                qData.words = sentence.split(" ").filter(word => word.trim() !== "");
+                qData.question_text = wrapper.querySelector("#instruction, input[type='text']")?.value || "";
+                qData.words = Array.from(wrapper.querySelectorAll("#wordInputs .word-input"))
+                    .map(input => input.value.trim())
+                    .filter(Boolean);
             }
 
             questions.push(qData);
