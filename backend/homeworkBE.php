@@ -1,4 +1,5 @@
 <?php
+session_start();
 // 1. Prevent any HTML error leaking
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -13,6 +14,13 @@ function debug_log($msg) {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
+}
+
+
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pensyarah') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Akses tidak dibenarkan.']);
     exit;
 }
 

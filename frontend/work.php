@@ -57,7 +57,7 @@
     <!-- HEADER -->
     <div class="px-8 py-5 border-b border-gray-300 bg-white">
       <h2 class="text-xl font-semibold text-gray-900">📚 Homework</h2>
-      <p class="text-sm text-gray-500 mt-1">Your assigned tasks</p>
+      <p class="text-sm text-gray-500 mt-1"><?php echo (isset($_SESSION['role']) && $_SESSION['role'] === 'Pensyarah') ? 'Manage and edit homework' : 'Your assigned tasks'; ?></p>
     </div>
 
     <!-- TABLE -->
@@ -83,29 +83,30 @@
                 <p class="text-xs text-gray-500 mt-1">Due: <?php echo $row['due_date']; ?></p>
               </td>
                 <td class="px-8 py-5 text-right">
-                  <?php 
+                  <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Pensyarah') { ?>
+                      <a href="edit-work.php?id=<?php echo $row['id']; ?>">
+                        <button class="px-4 py-1.5 text-sm rounded-full bg-amber-600 text-white hover:bg-amber-700 transition">
+                          Edit
+                        </button>
+                      </a>
+                  <?php } else {
                     // Fetch the submission status for this specific homework and student
                     $checkSubmission = mysqli_query($con, "SELECT status FROM student_homework_submissions WHERE homework_id = {$row['id']} AND student_id = {$_SESSION['id']}"); 
                     $submissionStatus = mysqli_fetch_assoc($checkSubmission);
 
-                    // If a submission exists AND the status is 'submitted', show the Green button
                     if ($submissionStatus && $submissionStatus['status'] == 'submitted') { 
-                  ?>     
+                  ?>
                       <button class="px-4 py-1.5 text-sm rounded-full bg-green-600 text-white cursor-default">
                         Submitted
                       </button>
-                  <?php 
-                    } else { 
-                      // If no submission exists OR it's not yet submitted, show the Blue 'View' button
-                  ?>
+                  <?php } else { ?>
                       <a href="view-work.php?id=<?php echo $row['id']; ?>">
                         <button class="px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
                           View
                         </button>
                       </a>
-                  <?php 
-                    } 
-                  ?>
+                  <?php }
+                  } ?>
               </td>
             </tr>
 
@@ -116,7 +117,9 @@
 
   </div>
 
+  <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Pensyarah') { ?>
   <a href="../frontend/add-work.php"><button class="w-[80vw] mt-6 flex items-center justify-center border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 text-3xl" style="border-radius: 22px; height: 150px;">+</button></a>
+<?php } ?>
 </div>
 
     

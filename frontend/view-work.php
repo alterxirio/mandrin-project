@@ -2,6 +2,11 @@
 session_start();
 include('../config/config.php');
 
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pelajar') {
+    header('Location: work.php');
+    exit;
+}
+
 $homeworkId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 $homework = null;
