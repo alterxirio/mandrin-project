@@ -119,12 +119,12 @@ try {
     );
 
     $totalScore = 0;
+    $totalIncorrect = 0; // NEW: Initialize incorrect counter
 
     // ===============================
     // LOOP EACH ANSWER
     // ===============================
     foreach ($answers as $entry) {
-
         $questionId = (int)($entry['question_id'] ?? 0);
         $answerText = trim((string)($entry['answer_text'] ?? ''));
 
@@ -154,21 +154,29 @@ try {
         // ===============================
         if (strtolower($answerText) === strtolower($correctAnswer)) {
             $totalScore++;
+        } else {
+            $totalIncorrect++; // NEW: Increment if the answer is wrong
         }
 
-        // Save student answer
+        // Save student answer (unchanged)
+        $insertAnswerStmt = mysqli_prepare(
+            $con,
+            "INSERT INTO student_homework_answers (submission_id, question_id, answer_text)
+             VALUES (?, ?, ?)"
+        );
         mysqli_stmt_bind_param($insertAnswerStmt, 'iis', $submissionId, $questionId, $answerText);
         mysqli_stmt_execute($insertAnswerStmt);
     }
 
     // ===============================
-    // UPDATE SCORE
+    // UPDATE SCORE & INCORRECT COUNT
     // ===============================
     $updateScoreStmt = mysqli_prepare(
         $con,
-        "UPDATE student_homework_submissions SET score = ? WHERE id = ?"
+        "UPDATE student_homework_submissions SET score = ?, incorrect = ? WHERE id = ?"
     );
-    mysqli_stmt_bind_param($updateScoreStmt, 'ii', $totalScore, $submissionId);
+    // Updated bind_param to include the second 'i' for $totalIncorrect
+    mysqli_stmt_bind_param($updateScoreStmt, 'iii', $totalScore, $totalIncorrect, $submissionId);
     mysqli_stmt_execute($updateScoreStmt);
 
     mysqli_commit($con);
@@ -176,7 +184,8 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Jawapan berjaya dihantar.',
-        'score'   => $totalScore
+        'score'   => $totalScore,
+        'incorrect' => $totalIncorrect // Added to response for debugging
     ]);
 
 } catch (Exception $e) {
