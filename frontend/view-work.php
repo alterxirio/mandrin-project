@@ -133,28 +133,34 @@ function splitCsvKeepingIndex(?string $value): array {
                         <?php endif; ?>
 
                         <div class="grid gap-2">
-                            <?php
-                                $options = [];
-                                if ($type === 'truefalse') {
-                                    $options = ['true' => 'Betul', 'false' => 'Salah'];
-                                } elseif ($type === 'listening' && !empty($labels)) {
-                                    foreach ($labels as $label) {
-                                        $options[$label] = $label;
-                                    }
-                                } else {
-                                    foreach (['option_a', 'option_b', 'option_c', 'option_d'] as $optionKey) {
-                                        if (!empty($question[$optionKey])) {
-                                            $options[$question[$optionKey]] = $question[$optionKey];
-                                        }
-                                    }
-                                }
-                            ?>
-                            <?php foreach ($options as $value => $text): ?>
-                                <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 <?php echo $isTeacher ? 'cursor-default' : 'cursor-pointer'; ?>">
-                                    <input type="radio" name="answer_<?php echo $qId; ?>" value="<?php echo htmlspecialchars($value); ?>" class="text-red-600 focus:ring-red-500" <?php echo $isTeacher ? 'disabled' : ''; ?>>
-                                    <span class="text-sm text-gray-700"><?php echo htmlspecialchars($text); ?></span>
-                                </label>
-                            <?php endforeach; ?>
+                            <?php if ($type === 'truefalse'): ?>
+                                <?php foreach (['true' => 'Betul', 'false' => 'Salah'] as $value => $text): ?>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 <?php echo $isTeacher ? 'cursor-default' : 'cursor-pointer'; ?>">
+                                        <input type="radio" name="answer_<?php echo $qId; ?>" value="<?php echo htmlspecialchars($value); ?>" class="text-red-600 focus:ring-red-500" <?php echo $isTeacher ? 'disabled' : ''; ?>>
+                                        <span class="text-sm text-gray-700"><?php echo htmlspecialchars($text); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            <?php elseif ($type === 'listening' && !empty($labels)): ?>
+                                <?php foreach ($labels as $labelIndex => $label): ?>
+                                    <?php $choiceImage = $imagePaths[$labelIndex] ?? ''; ?>
+                                    <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 <?php echo $isTeacher ? 'cursor-default' : 'cursor-pointer'; ?>">
+                                        <input type="radio" name="answer_<?php echo $qId; ?>" value="<?php echo htmlspecialchars($label); ?>" class="text-red-600 focus:ring-red-500" <?php echo $isTeacher ? 'disabled' : ''; ?>>
+                                        <?php if ($choiceImage !== ''): ?>
+                                            <img src="<?php echo htmlspecialchars($choiceImage); ?>" alt="Pilihan audio gambar" class="h-14 w-14 rounded-md object-cover border border-gray-200">
+                                        <?php endif; ?>
+                                        <span class="text-sm text-gray-700"><?php echo htmlspecialchars($label); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <?php foreach (['option_a', 'option_b', 'option_c', 'option_d'] as $optionKey): ?>
+                                    <?php if (!empty($question[$optionKey])): ?>
+                                        <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 <?php echo $isTeacher ? 'cursor-default' : 'cursor-pointer'; ?>">
+                                            <input type="radio" name="answer_<?php echo $qId; ?>" value="<?php echo htmlspecialchars($question[$optionKey]); ?>" class="text-red-600 focus:ring-red-500" <?php echo $isTeacher ? 'disabled' : ''; ?>>
+                                            <span class="text-sm text-gray-700"><?php echo htmlspecialchars($question[$optionKey]); ?></span>
+                                        </label>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     <?php elseif ($type === 'picture'): ?>
                         <?php $matchLabels = splitCsv($question['correct_answer'] ?? ''); ?>

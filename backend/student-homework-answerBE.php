@@ -6,6 +6,75 @@ ini_set('display_errors', 1);
 header('Content-Type: application/json');
 include('../config/config.php');
 
+function normalizeCompareText(string $value): string {
+    $value = trim($value);
+    $value = preg_replace('/\s+/u', ' ', $value);
+    if ($value === null) {
+        return '';
+    }
+    return function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
+}
+
+function splitAnswerParts(string $value): array {
+    $parts = preg_split('/[\s,]+/u', trim($value));
+    if (!is_array($parts)) {
+        return [];
+    }
+
+    $normalizedParts = [];
+    foreach ($parts as $part) {
+        $normalized = normalizeCompareText((string)$part);
+        if ($normalized !== '') {
+            $normalizedParts[] = $normalized;
+        }
+    }
+
+    return $normalizedParts;
+}
+
+function isAnswerCorrect(string $type, string $studentAnswer, string $correctAnswer): bool {
+    $type = trim($type);
+
+    if ($type === 'picture') {
+        $studentParts = array_map('normalizeCompareText', array_map('trim', explode(',', $studentAnswer)));
+        $correctParts = array_map('normalizeCompareText', array_map('trim', explode(',', $correctAnswer)));
+
+        $studentParts = array_values(array_filter($studentParts, fn($item) => $item !== ''));
+        $correctParts = array_values(array_filter($correctParts, fn($item) => $item !== ''));
+
+        if (count($studentParts) !== count($correctParts)) {
+            return false;
+        }
+
+        foreach ($correctParts as $idx => $part) {
+            if (($studentParts[$idx] ?? '') !== $part) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    if ($type === 'rearrange') {
+        $studentParts = splitAnswerParts($studentAnswer);
+        $correctParts = splitAnswerParts($correctAnswer);
+
+        if (count($studentParts) !== count($correctParts)) {
+            return false;
+        }
+
+        foreach ($correctParts as $idx => $part) {
+            if (($studentParts[$idx] ?? '') !== $part) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return normalizeCompareText($studentAnswer) === normalizeCompareText($correctAnswer);
+}
+
 
 if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Pelajar') {
     http_response_code(403);
@@ -143,7 +212,7 @@ try {
         // Get correct answer
         $questionStmt = mysqli_prepare(
             $con,
-            "SELECT correct_answer FROM questions 
+            "SELECT type, correct_answer FROM questions 
              WHERE id = ? AND homework_id = ? LIMIT 1"
         );
         mysqli_stmt_bind_param($questionStmt, 'ii', $questionId, $homeworkId);
@@ -155,12 +224,13 @@ try {
         }
 
         $questionRow = mysqli_fetch_assoc($questionResult);
+        $questionType = trim((string)($questionRow['type'] ?? ''));
         $correctAnswer = trim($questionRow['correct_answer']);
 
         // ===============================
         // AUTO MARKING (case insensitive)
         // ===============================
-        if (strtolower($answerText) === strtolower($correctAnswer)) {
+        if (isAnswerCorrect($questionType, $answerText, $correctAnswer)) {
             $totalScore++;
         } else {
             $totalIncorrect++; // NEW: Increment if the answer is wrong
