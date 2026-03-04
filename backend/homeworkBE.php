@@ -1,4 +1,5 @@
 <?php
+session_start();
 // 1. Prevent any HTML error leaking
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -9,6 +10,13 @@ include('../config/config.php');
 // Simple log function for debugging (writes to a file instead of the screen)
 function debug_log($msg) {
     file_put_contents('debug.log', date('Y-m-d H:i:s') . ': ' . $msg . PHP_EOL, FILE_APPEND);
+}
+
+
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pensyarah') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Akses tidak dibenarkan.']);
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

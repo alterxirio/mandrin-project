@@ -1,9 +1,17 @@
 <?php
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 include('../config/config.php');
+
+
+if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Pelajar') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Akses tidak dibenarkan.']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -21,7 +29,7 @@ if (!is_array($data)) {
 }
 
 $homeworkId = isset($data['homework_id']) ? (int)$data['homework_id'] : 0;
-$studentId  = isset($data['student_id']) ? (int)$data['student_id'] : 0;
+$studentId  = (int)$_SESSION['id'];
 $answers    = $data['answers'] ?? [];
 
 if ($homeworkId <= 0 || $studentId <= 0 || empty($answers)) {
