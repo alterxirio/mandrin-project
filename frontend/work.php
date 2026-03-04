@@ -20,7 +20,7 @@ $result = mysqli_query($con, $sql);
 <?php include('navbar.php'); ?>
 
 <div class="grid place-items-center bg-gray-100">
-  <div class="w-[80vw] bg-white shadow-md rounded-xl border border-gray-200 overflow-hidden">
+  <div class="w-[80vw] bg-white shadow-md rounded-xl border border-gray-200 overflow-hidden mb-10">
     <div class="px-8 py-5 border-b border-gray-300 bg-white">
       <h2 class="text-xl font-semibold text-gray-900">📚 Homework</h2>
       <p class="text-sm text-gray-500 mt-1"><?php echo $isTeacher ? 'Urus dan semak tugasan pelajar' : 'Your assigned tasks'; ?></p>
@@ -35,11 +35,15 @@ $result = mysqli_query($con, $sql);
           </tr>
         </thead>
         <tbody class="divide-y">
+          <?php
+            $sql = 'SELECT * FROM homework ORDER BY id DESC';
+            $result = mysqli_query($con, $sql);
+          ?>
           <?php while ($row = mysqli_fetch_assoc($result)): ?>
             <tr class="hover:bg-gray-50 border-gray-300 transition">
               <td class="px-8 py-5 font-medium">
                 <?php echo htmlspecialchars($row['title']); ?>
-                <p class="text-xs text-gray-500 mt-1">Due: <?php echo htmlspecialchars($row['due_date']); ?></p>
+                <p class="text-xs text-gray-500 mt-1">Due: <?php echo ($row['due_date']); ?></p>
               </td>
               <td class="px-8 py-5 text-right">
                 <?php if ($isTeacher): ?>
