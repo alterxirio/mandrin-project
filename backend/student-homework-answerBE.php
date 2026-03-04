@@ -5,6 +5,20 @@ ini_set('display_errors', 1);
 header('Content-Type: application/json');
 include('../config/config.php');
 
+function normalizeAnswerText(string $answer, string $questionType): string {
+    $normalized = trim($answer);
+    $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+
+    // Rearrange questions are built with drag/drop words and may be stored
+    // with commas in DB while the UI submits words joined by spaces.
+    if ($questionType === 'rearrange') {
+        $normalized = str_replace(',', ' ', $normalized);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+    }
+
+    return mb_strtolower(trim($normalized), 'UTF-8');
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
@@ -135,7 +149,7 @@ try {
         // Get correct answer
         $questionStmt = mysqli_prepare(
             $con,
-            "SELECT correct_answer FROM questions 
+             "SELECT type, correct_answer FROM questions 
              WHERE id = ? AND homework_id = ? LIMIT 1"
         );
         mysqli_stmt_bind_param($questionStmt, 'ii', $questionId, $homeworkId);
@@ -147,12 +161,16 @@ try {
         }
 
         $questionRow = mysqli_fetch_assoc($questionResult);
-        $correctAnswer = trim($questionRow['correct_answer']);
+        $correctAnswer = trim((string)$questionRow['correct_answer']);
+        $questionType = trim((string)($questionRow['type'] ?? ''));
+
+        $normalizedStudentAnswer = normalizeAnswerText($answerText, $questionType);
+        $normalizedCorrectAnswer = normalizeAnswerText($correctAnswer, $questionType);
 
         // ===============================
         // AUTO MARKING (case insensitive)
         // ===============================
-        if (strtolower($answerText) === strtolower($correctAnswer)) {
+       if ($normalizedStudentAnswer === $normalizedCorrectAnswer) {
             $totalScore++;
         } else {
             $totalIncorrect++; // NEW: Increment if the answer is wrong
