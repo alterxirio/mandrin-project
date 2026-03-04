@@ -197,7 +197,13 @@ function splitCsvKeepingIndex(?string $value): array
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <?php foreach ($imagePaths as $imageIndex => $imagePath): ?>
                                     <div class="border border-gray-200 rounded-lg p-3 space-y-2">
+                                       <?php if (!empty($imagePath)): ?>
                                         <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Gambar padanan" class="h-36 w-full object-cover rounded-md">
+                                        <?php else: ?>
+                                            <div class="h-36 w-full rounded-md border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-xs text-gray-500">
+                                                Gambar tidak tersedia
+                                            </div>
+                                        <?php endif; ?>
                                         <input type="text" class="match-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Jawapan untuk gambar ini" data-match-index="<?php echo $imageIndex; ?>" data-word-hint="<?php echo htmlspecialchars($matchLabels[$imageIndex] ?? ''); ?>">
                                     </div>
                                 <?php endforeach; ?>
