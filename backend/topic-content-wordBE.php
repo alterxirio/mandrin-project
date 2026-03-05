@@ -1,73 +1,85 @@
 <?php
 include('../config/config.php');
 
-// Folder to save
-$folder = "../media/audio/topik-".$_GET["topik_id"]."/";
+function ensureTopicAudioFolder(string $topicId): string {
+    $folder = "../media/audio/topik-{$topicId}/";
+    if (!is_dir($folder)) {
+        mkdir($folder, 0777, true);
+    }
 
-// Detect UPDATE
+    return $folder;
+}
+
+function sanitizeAudioName(string $value): string {
+    $sanitized = preg_replace('/[\\\\\/:*?"<>|]+/u', '', trim($value));
+    $sanitized = preg_replace('/\s+/u', ' ', $sanitized);
+
+    return $sanitized !== '' ? $sanitized : 'audio';
+}
+
+function saveWordAudio(string $fileKey, string $topicId, string $wordName): ?string {
+    if (!isset($_FILES[$fileKey]) || $_FILES[$fileKey]['error'] !== 0) {
+        return null;
+    }
+
+    $folder = ensureTopicAudioFolder($topicId);
+    $extension = strtolower((string)pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
+    if ($extension === '') {
+        $extension = 'mp3';
+    }
+
+    $safeWordName = sanitizeAudioName($wordName);
+    $newName = "topik {$topicId} - {$safeWordName}.{$extension}";
+    $destination = $folder . $newName;
+
+    if (!move_uploaded_file($_FILES[$fileKey]['tmp_name'], $destination)) {
+        return null;
+    }
+
+    return $destination;
+}
+
 if (isset($_POST['edit_name'])) {
-    
     $id = $_POST['edit_id'];
-    $topik_id = $_GET["topik_id"];
+    $topik_id = $_GET['topik_id'];
     $meaning = $_POST['edit_meaning'];
     $name = $_POST['edit_name'];
     $pinyin = $_POST['edit_pinyin'];
 
-    echo $topik_id;
-    echo $meaning;
-    echo $name;
-    echo $pinyin;
-    
+    if (isset($_FILES['edit_audio']) && $_FILES['edit_audio']['error'] === 0) {
+        $destination = saveWordAudio('edit_audio', (string)$topik_id, $name);
 
-
-    // Check if a new banner is uploaded
-    if(isset($_FILES['edit_audio']) && $_FILES['edit_audio']['error'] === 0) {
-        $newName = "topik " . $_GET["topik_id"]." - ".$_POST['edit_name'].".mp3";
-        $destination = $folder . $newName;
-        move_uploaded_file($_FILES['edit_audio']['tmp_name'], $destination);
-
-        // Update with banner
-        $sql = "UPDATE words 
-                SET topic_id='$topik_id', chinese='$name', pinyin='$pinyin', meaning='$meaning', audio_path='$destination'
-                WHERE id='$id'";
-
-
+        if ($destination !== null) {
+            $sql = "UPDATE words
+                    SET topic_id='$topik_id', chinese='$name', pinyin='$pinyin', meaning='$meaning', audio_path='$destination'
+                    WHERE id='$id'";
+        } else {
+            $sql = "UPDATE words
+                    SET topic_id='$topik_id', chinese='$name', pinyin='$pinyin', meaning='$meaning'
+                    WHERE id='$id'";
+        }
     } else {
-        // Update without banner
-        $sql = "UPDATE words 
+        $sql = "UPDATE words
                 SET topic_id='$topik_id', chinese='$name', pinyin='$pinyin', meaning='$meaning'
                 WHERE id='$id'";
-
-
     }
 
-    "3";
     mysqli_query($con, $sql);
     header("Location: ../frontend/topic-content.php?id=$topik_id");
     exit;
 }
 
-
 if (isset($_POST['add_name'])) {
-
-    // Otherwise → ADD NEW TOPIC
-    // $sql = "SELECT topik FROM topics ORDER BY topik DESC LIMIT 1";
-    // $result = mysqli_query($con, $sql);
-    // $row = mysqli_fetch_assoc($result);
-    // $lastTopic = $row ? $row['topik'] : 0;
-
-    // $newTopicNumber = $lastTopic + 1;
-
-    // Check banner upload
-    if(isset($_FILES['add_audio']) && $_FILES['add_audio']['error'] === 0) {
-        $newName = "topik " . $_GET["topik_id"]." - ".$_POST['add_name'].".mp3";
-        $destination = $folder . $newName;
-        move_uploaded_file($_FILES['add_audio']['tmp_name'], $destination);
+    if (isset($_FILES['add_audio']) && $_FILES['add_audio']['error'] === 0) {
+        $destination = saveWordAudio('add_audio', (string)$_GET['topik_id'], (string)$_POST['add_name']);
+        if ($destination === null) {
+            $destination = '../media/audio/default-audio.mp3';
+        }
     } else {
-         $destination = $folder . "default-audio.mp3";
+        $destination = '../media/audio/default-audio.mp3';
     }
 
-    $topik_id = $_GET["topik_id"];
+    $topik_id = $_GET['topik_id'];
     $meaning = $_POST['add_meaning'];
     $name = $_POST['add_name'];
     $pinyin = $_POST['add_pinyin'];
@@ -78,22 +90,20 @@ if (isset($_POST['add_name'])) {
 }
 
 if (isset($_GET['delete-id'])) {
-
     $id = $_GET['delete-id'];
-    
+
     $query = mysqli_query($con, "SELECT audio_path FROM words WHERE id = '$id'");
     $data = mysqli_fetch_assoc($query);
     $file_path = $data['audio_path'];
 
-    if(file_exists($file_path)) {
+    if (file_exists($file_path)) {
         unlink($file_path);
     }
 
     mysqli_query($con, "DELETE FROM words WHERE id = '$id'");
-    $topik_id = $_GET["topic-id"];
+    $topik_id = $_GET['topic-id'];
 
     header("Location:  ../frontend/topic-content.php?id=$topik_id");
-
 }
 
 ?>
