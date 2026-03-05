@@ -8,15 +8,24 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pelajar') {
 }
 
 $homeworkId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$studentId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
 
 $homework = null;
 $questions = [];
 $databaseError = '';
+$isAlreadySubmitted = false;
 
 if ($homeworkId > 0) {
-    $homeworkStmt = mysqli_prepare($con, 'SELECT id, title, description, class, due_date FROM homework WHERE id = ? LIMIT 1');
+    $homeworkStmt = mysqli_prepare(
+        $con,
+        'SELECT h.id, h.title, h.description, h.class, h.due_date
+         FROM homework h
+         INNER JOIN class_students cs ON cs.class = h.class
+         WHERE h.id = ? AND cs.student_id = ?
+         LIMIT 1'
+    );
     if ($homeworkStmt) {
-        mysqli_stmt_bind_param($homeworkStmt, 'i', $homeworkId);
+        mysqli_stmt_bind_param($homeworkStmt, 'ii', $homeworkId, $studentId);
         if (mysqli_stmt_execute($homeworkStmt)) {
             $homeworkResult = mysqli_stmt_get_result($homeworkStmt);
             $homework = mysqli_fetch_assoc($homeworkResult);
@@ -48,6 +57,23 @@ if ($homeworkId > 0) {
         }
     } elseif ($databaseError === '') {
         $databaseError = 'Ralat sistem semasa menyediakan senarai soalan.';
+    }
+
+    $submissionStmt = mysqli_prepare(
+        $con,
+        'SELECT status FROM student_homework_submissions WHERE homework_id = ? AND student_id = ? LIMIT 1'
+    );
+    if ($submissionStmt) {
+        mysqli_stmt_bind_param($submissionStmt, 'ii', $homeworkId, $studentId);
+        mysqli_stmt_execute($submissionStmt);
+        $submissionResult = mysqli_stmt_get_result($submissionStmt);
+        $submissionRow = mysqli_fetch_assoc($submissionResult);
+        $isAlreadySubmitted = strtolower((string)($submissionRow['status'] ?? '')) === 'submitted';
+    }
+
+    if ($isAlreadySubmitted) {
+        header('Location: work.php');
+        exit;
     }
 }
 
@@ -211,13 +237,28 @@ function splitCsvKeepingIndex(?string $value): array
                         </div>
                     <?php elseif ($type === 'picture'): ?>
                         <?php
-                            $matchLabels = splitCsv($question['audioImage_label'] ?? '');
+                            $matchLabels = splitCsv($question['correct_answer'] ?? '');
                             if (empty($matchLabels)) {
-                                $matchLabels = splitCsv($question['correct_answer'] ?? '');
+                                $matchLabels = splitCsv($question['audioImage_label'] ?? '');
                             }
+                            $draggableLabels = $matchLabels;
+                            shuffle($draggableLabels);
                         ?>
                         <div class="space-y-3">
                             <p class="text-sm text-gray-600">Padankan gambar dengan perkataan yang sesuai.</p>
+                            <div class="picture-label-bank flex flex-wrap gap-2 rounded-lg border border-black bg-black p-3" aria-label="Label jawapan">
+                                <?php foreach ($draggableLabels as $labelIndex => $label): ?>
+                                    <button
+                                        type="button"
+                                        draggable="true"
+                                        class="picture-label-token px-3 py-1.5 rounded-full border border-gray-300 bg-white text-sm text-gray-900 hover:bg-gray-100"
+                                        data-token-id="<?php echo $qId . '-' . $labelIndex; ?>"
+                                        data-token="<?php echo htmlspecialchars($label); ?>"
+                                    >
+                                        <?php echo htmlspecialchars($label); ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <?php foreach ($imagePaths as $imageIndex => $imagePath): ?>
                                     <div class="border border-gray-200 rounded-lg p-3 space-y-2">
@@ -228,7 +269,8 @@ function splitCsvKeepingIndex(?string $value): array
                                                 Gambar tidak tersedia
                                             </div>
                                         <?php endif; ?>
-                                        <input type="text" class="match-answer w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Jawapan untuk gambar ini" data-match-index="<?php echo $imageIndex; ?>" data-word-hint="<?php echo htmlspecialchars($matchLabels[$imageIndex] ?? ''); ?>">
+                                        <input type="text" readonly class="match-answer picture-drop-input w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm" placeholder="Seret label jawapan ke sini" data-match-index="<?php echo $imageIndex; ?>" data-word-hint="<?php echo htmlspecialchars($matchLabels[$imageIndex] ?? ''); ?>">
+                                        <button type="button" class="picture-clear-answer text-xs font-semibold text-red-600 hover:text-red-700" data-match-index="<?php echo $imageIndex; ?>">Kosongkan</button>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -291,7 +333,38 @@ function splitCsvKeepingIndex(?string $value): array
         textarea.value = ordered.join(' ');
     };
 
+    const returnPictureTokenToBank = (card, tokenId) => {
+        if (!tokenId) return;
+        const token = card.querySelector(`.picture-label-token[data-token-id="${tokenId}"]`);
+        if (!token) return;
+        token.classList.remove('hidden');
+        token.disabled = false;
+    };
+
+    const clearPictureInput = (card, input) => {
+        if (!input) return;
+        const existingTokenId = input.dataset.tokenId || '';
+        if (existingTokenId) {
+            returnPictureTokenToBank(card, existingTokenId);
+        }
+        input.value = '';
+        input.dataset.tokenId = '';
+    };
+
     list.addEventListener('dragstart', (event) => {
+        const pictureToken = event.target.closest('.picture-label-token');
+        if (pictureToken) {
+            const card = pictureToken.closest('.question-card');
+            if (!card || pictureToken.disabled) return;
+
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('source-card-id', card.dataset.questionId || '');
+            event.dataTransfer.setData('picture-token-id', pictureToken.dataset.tokenId || '');
+            event.dataTransfer.setData('picture-token-value', pictureToken.dataset.token || pictureToken.textContent || '');
+            pictureToken.classList.add('opacity-60');
+            return;
+        }
+
         const tokenButton = event.target.closest('.rearrange-token');
         if (!tokenButton) return;
 
@@ -306,21 +379,77 @@ function splitCsvKeepingIndex(?string $value): array
     });
 
     list.addEventListener('dragend', (event) => {
+        const pictureToken = event.target.closest('.picture-label-token');
+        if (pictureToken) {
+            pictureToken.classList.remove('opacity-60');
+            return;
+        }
+
         const tokenButton = event.target.closest('.rearrange-token');
         if (tokenButton) tokenButton.classList.remove('opacity-60');
     });
 
     list.addEventListener('dragover', (event) => {
-        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank');
+        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank, .picture-drop-input, .picture-label-bank');
         if (!dropzone) return;
         event.preventDefault();
         dropzone.classList.add('border-red-400');
     });
 
     list.addEventListener('dragleave', (event) => {
-        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank');
+        const dropzone = event.target.closest('.rearrange-dropzone, .rearrange-bank, .picture-drop-input, .picture-label-bank');
         if (!dropzone) return;
         dropzone.classList.remove('border-red-400');
+    });
+
+    list.addEventListener('drop', (event) => {
+        const pictureTarget = event.target.closest('.picture-drop-input, .picture-label-bank');
+        if (!pictureTarget) return;
+
+        event.preventDefault();
+        pictureTarget.classList.remove('border-red-400');
+
+        const card = pictureTarget.closest('.question-card');
+        if (!card) return;
+
+        const sourceCardId = event.dataTransfer.getData('source-card-id');
+        const tokenId = event.dataTransfer.getData('picture-token-id');
+        const tokenValue = (event.dataTransfer.getData('picture-token-value') || '').trim();
+
+        if (!tokenId || !tokenValue || sourceCardId !== (card.dataset.questionId || '')) return;
+
+        const token = card.querySelector(`.picture-label-token[data-token-id="${tokenId}"]`);
+        if (!token) return;
+
+        if (pictureTarget.classList.contains('picture-label-bank')) {
+            const assignedInput = card.querySelector(`.picture-drop-input[data-token-id="${tokenId}"]`);
+            if (assignedInput) {
+                assignedInput.value = '';
+                assignedInput.dataset.tokenId = '';
+            }
+
+            token.classList.remove('hidden');
+            token.disabled = false;
+            return;
+        }
+
+        const targetInput = pictureTarget;
+        const currentTokenId = targetInput.dataset.tokenId || '';
+        if (currentTokenId && currentTokenId !== tokenId) {
+            returnPictureTokenToBank(card, currentTokenId);
+        }
+
+        const previousInputWithSameToken = card.querySelector(`.picture-drop-input[data-token-id="${tokenId}"]`);
+        if (previousInputWithSameToken && previousInputWithSameToken !== targetInput) {
+            previousInputWithSameToken.value = '';
+            previousInputWithSameToken.dataset.tokenId = '';
+        }
+
+        targetInput.value = tokenValue;
+        targetInput.dataset.tokenId = tokenId;
+
+        token.classList.add('hidden');
+        token.disabled = true;
     });
 
     list.addEventListener('drop', (event) => {
@@ -344,6 +473,17 @@ function splitCsvKeepingIndex(?string $value): array
     });
 
     list.addEventListener('click', (event) => {
+        const clearBtn = event.target.closest('.picture-clear-answer');
+        if (clearBtn) {
+            const card = clearBtn.closest('.question-card');
+            if (!card) return;
+
+            const matchIndex = clearBtn.dataset.matchIndex || '';
+            const input = card.querySelector(`.picture-drop-input[data-match-index="${matchIndex}"]`);
+            clearPictureInput(card, input);
+            return;
+        }
+
         const resetBtn = event.target.closest('.rearrange-reset');
         if (!resetBtn) return;
 
@@ -443,6 +583,7 @@ function splitCsvKeepingIndex(?string $value): array
 
             answerStatus.textContent = 'Jawapan berjaya dihantar!';
             answerStatus.className = 'text-center text-sm text-green-600';
+            window.location.href = 'work.php';
         } catch (error) {
             answerStatus.textContent = error.message;
             answerStatus.className = 'text-center text-sm text-red-600';

@@ -34,19 +34,42 @@
 
         <?php
         $isTeacher = isset($_SESSION['role']) && $_SESSION['role'] === 'Pensyarah';
-        $homeworkSql = "
-          SELECT
-            h.*,
-            (SELECT COUNT(*) FROM questions q WHERE q.homework_id = h.id) AS total_questions
-          FROM homework h
-          ORDER BY h.due_date ASC, h.id DESC
-        ";
-        $result = mysqli_query($con, $homeworkSql);
+
+        if ($isTeacher) {
+          $homeworkSql = "
+            SELECT
+              h.*,
+              (SELECT COUNT(*) FROM questions q WHERE q.homework_id = h.id) AS total_questions
+            FROM homework h
+            ORDER BY h.due_date ASC, h.id DESC
+          ";
+          $result = mysqli_query($con, $homeworkSql);
+        } else {
+          $studentId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+          $result = false;
+
+          $homeworkStmt = mysqli_prepare(
+            $con,
+            "SELECT
+                h.*,
+                (SELECT COUNT(*) FROM questions q WHERE q.homework_id = h.id) AS total_questions
+             FROM homework h
+             INNER JOIN class_students cs ON cs.class = h.class
+             WHERE cs.student_id = ?
+             ORDER BY h.due_date ASC, h.id DESC"
+          );
+
+          if ($homeworkStmt) {
+            mysqli_stmt_bind_param($homeworkStmt, 'i', $studentId);
+            mysqli_stmt_execute($homeworkStmt);
+            $result = mysqli_stmt_get_result($homeworkStmt);
+          }
+        }
         ?>
         
         <tbody class="divide-y">
 
-          <?php while($row = mysqli_fetch_assoc($result)) {
+          <?php while($result && ($row = mysqli_fetch_assoc($result))) {
             $homeworkId = (int)$row['id'];
             $totalQuestions = max(1, (int)$row['total_questions']);
 

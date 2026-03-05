@@ -10,6 +10,15 @@ function normalizeAnswerText(string $answer, string $questionType): string {
     $normalized = trim($answer);
     $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
 
+    if ($questionType === 'picture') {
+        $items = array_map(
+            static fn($item) => mb_strtolower(trim((string)$item), 'UTF-8'),
+            explode(',', $normalized)
+        );
+        $items = array_values(array_filter($items, static fn($item) => $item !== ''));
+        return implode(',', $items);
+    }
+
     // Rearrange questions are built with drag/drop words and may be stored
     // with commas in DB while the UI submits words joined by spaces.
     if ($questionType === 'rearrange') {
@@ -58,13 +67,20 @@ try {
     // ===============================
     // CHECK HOMEWORK EXISTS
     // ===============================
-    $checkHomework = mysqli_prepare($con, "SELECT id, due_date FROM homework WHERE id = ? LIMIT 1");
-    mysqli_stmt_bind_param($checkHomework, 'i', $homeworkId);
+    $checkHomework = mysqli_prepare(
+        $con,
+        "SELECT h.id, h.due_date
+         FROM homework h
+         INNER JOIN class_students cs ON cs.class = h.class
+         WHERE h.id = ? AND cs.student_id = ?
+         LIMIT 1"
+    );
+    mysqli_stmt_bind_param($checkHomework, 'ii', $homeworkId, $studentId);
     mysqli_stmt_execute($checkHomework);
     $homeworkResult = mysqli_stmt_get_result($checkHomework);
 
     if (mysqli_num_rows($homeworkResult) === 0) {
-        throw new Exception("Kerja rumah tidak ditemui.");
+        throw new Exception("Kerja rumah tidak ditemui untuk kelas pelajar.");
     }
 
     $homeworkRow = mysqli_fetch_assoc($homeworkResult);
