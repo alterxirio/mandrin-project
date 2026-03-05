@@ -241,7 +241,32 @@ INSERT INTO `users` (`id`, `nama`, `angkagiliran`, `password`, `role`) VALUES
 (1, 'Admin Pensyarah', 'admin01', 'admin01', 'Pensyarah'),
 (2, 'Siti Pelajar', 'student01', 'student01', 'Pelajar'),
 (3, 'Ali Pelajar', 'student02', 'student02', 'Pelajar'),
-(4, 'Umirah Syamina', 'BKV0425KA008', '1245', 'Pensyarah');
+(4, 'Umirah Syamina', 'BKV0425KA008', '1245', 'Pensyarah'),
+(5, 'Mei Ling', 'student03', 'student03', 'Pelajar'),
+(6, 'Hakim', 'student04', 'student04', 'Pelajar');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `class_students`
+--
+
+CREATE TABLE `class_students` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `class` varchar(20) NOT NULL,
+  `student_id` int(10) UNSIGNED NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `class_students`
+--
+
+INSERT INTO `class_students` (`id`, `class`, `student_id`, `created_at`) VALUES
+(1, '2A', 2, '2026-03-05 04:00:00'),
+(2, '2A', 3, '2026-03-05 04:00:00'),
+(3, '2A', 5, '2026-03-05 04:00:00'),
+(4, '2B', 6, '2026-03-05 04:00:00');
 
 -- --------------------------------------------------------
 
@@ -280,6 +305,14 @@ INSERT INTO `words` (`id`, `topic_id`, `chinese`, `pinyin`, `meaning`, `audio_pa
 ALTER TABLE `dialogues`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_dialogues_topic_id` (`topic_id`);
+
+--
+-- Indexes for table `class_students`
+--
+ALTER TABLE `class_students`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_class_students` (`class`,`student_id`),
+  ADD KEY `idx_class_students_student_id` (`student_id`);
 
 --
 -- Indexes for table `homework`
@@ -342,6 +375,12 @@ ALTER TABLE `dialogues`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `class_students`
+--
+ALTER TABLE `class_students`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `homework`
 --
 ALTER TABLE `homework`
@@ -375,7 +414,7 @@ ALTER TABLE `topics`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `words`
@@ -392,6 +431,12 @@ ALTER TABLE `words`
 --
 ALTER TABLE `dialogues`
   ADD CONSTRAINT `fk_dialogues_topic` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `class_students`
+--
+ALTER TABLE `class_students`
+  ADD CONSTRAINT `fk_class_students_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `student_homework_answers`
