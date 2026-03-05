@@ -8,15 +8,24 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pelajar') {
 }
 
 $homeworkId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$studentId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
 
 $homework = null;
 $questions = [];
 $databaseError = '';
+$isAlreadySubmitted = false;
 
 if ($homeworkId > 0) {
-    $homeworkStmt = mysqli_prepare($con, 'SELECT id, title, description, class, due_date FROM homework WHERE id = ? LIMIT 1');
+    $homeworkStmt = mysqli_prepare(
+        $con,
+        'SELECT h.id, h.title, h.description, h.class, h.due_date
+         FROM homework h
+         INNER JOIN class_students cs ON cs.class = h.class
+         WHERE h.id = ? AND cs.student_id = ?
+         LIMIT 1'
+    );
     if ($homeworkStmt) {
-        mysqli_stmt_bind_param($homeworkStmt, 'i', $homeworkId);
+        mysqli_stmt_bind_param($homeworkStmt, 'ii', $homeworkId, $studentId);
         if (mysqli_stmt_execute($homeworkStmt)) {
             $homeworkResult = mysqli_stmt_get_result($homeworkStmt);
             $homework = mysqli_fetch_assoc($homeworkResult);
@@ -48,6 +57,23 @@ if ($homeworkId > 0) {
         }
     } elseif ($databaseError === '') {
         $databaseError = 'Ralat sistem semasa menyediakan senarai soalan.';
+    }
+
+    $submissionStmt = mysqli_prepare(
+        $con,
+        'SELECT status FROM student_homework_submissions WHERE homework_id = ? AND student_id = ? LIMIT 1'
+    );
+    if ($submissionStmt) {
+        mysqli_stmt_bind_param($submissionStmt, 'ii', $homeworkId, $studentId);
+        mysqli_stmt_execute($submissionStmt);
+        $submissionResult = mysqli_stmt_get_result($submissionStmt);
+        $submissionRow = mysqli_fetch_assoc($submissionResult);
+        $isAlreadySubmitted = strtolower((string)($submissionRow['status'] ?? '')) === 'submitted';
+    }
+
+    if ($isAlreadySubmitted) {
+        header('Location: work.php');
+        exit;
     }
 }
 
@@ -443,6 +469,7 @@ function splitCsvKeepingIndex(?string $value): array
 
             answerStatus.textContent = 'Jawapan berjaya dihantar!';
             answerStatus.className = 'text-center text-sm text-green-600';
+            window.location.href = 'work.php';
         } catch (error) {
             answerStatus.textContent = error.message;
             answerStatus.className = 'text-center text-sm text-red-600';

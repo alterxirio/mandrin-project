@@ -58,13 +58,20 @@ try {
     // ===============================
     // CHECK HOMEWORK EXISTS
     // ===============================
-    $checkHomework = mysqli_prepare($con, "SELECT id, due_date FROM homework WHERE id = ? LIMIT 1");
-    mysqli_stmt_bind_param($checkHomework, 'i', $homeworkId);
+    $checkHomework = mysqli_prepare(
+        $con,
+        "SELECT h.id, h.due_date
+         FROM homework h
+         INNER JOIN class_students cs ON cs.class = h.class
+         WHERE h.id = ? AND cs.student_id = ?
+         LIMIT 1"
+    );
+    mysqli_stmt_bind_param($checkHomework, 'ii', $homeworkId, $studentId);
     mysqli_stmt_execute($checkHomework);
     $homeworkResult = mysqli_stmt_get_result($checkHomework);
 
     if (mysqli_num_rows($homeworkResult) === 0) {
-        throw new Exception("Kerja rumah tidak ditemui.");
+        throw new Exception("Kerja rumah tidak ditemui untuk kelas pelajar.");
     }
 
     $homeworkRow = mysqli_fetch_assoc($homeworkResult);
