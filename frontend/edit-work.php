@@ -106,6 +106,7 @@ if ($homeworkId > 0) {
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
             </div>
+
         </section>
 
         <div id="formContainer" class="space-y-6"></div>
@@ -189,6 +190,16 @@ if ($homeworkId > 0) {
         container.appendChild(note);
     }
 
+    function setExistingImagePreview(previewBox, imagePath) {
+        if (!previewBox || !imagePath) return;
+
+        previewBox.textContent = '';
+        previewBox.style.backgroundImage = `url('../${imagePath}')`;
+        previewBox.style.backgroundSize = 'cover';
+        previewBox.style.backgroundPosition = 'center';
+        previewBox.style.backgroundRepeat = 'no-repeat';
+    }
+
     function fillQuestionData(wrapper, question) {
         wrapper.dataset.questionId = question.id || '';
         const type = question.type;
@@ -217,7 +228,7 @@ if ($homeworkId > 0) {
                 const radio = card.querySelector("input[type='radio']");
                 input.value = labels[idx] || '';
                 radio.checked = (labels[idx] || '').trim().toLowerCase() === (question.correct_answer || '').trim().toLowerCase();
-                if (images[idx]) showExistingMediaNote(card, `Gambar semasa: ${images[idx]}`);
+                if (images[idx]) setExistingImagePreview(card.querySelector('.h-32'), images[idx]);
             });
             if (question.audio_file) {
                 const audioWrap = wrapper.querySelector('#audioUpload')?.parentElement;
@@ -233,7 +244,7 @@ if ($homeworkId > 0) {
             Array.from(list.children).forEach((row, idx) => {
                 const input = row.querySelector("input[type='text']");
                 input.value = words[idx] || '';
-                if (images[idx]) showExistingMediaNote(row, `Gambar semasa: ${images[idx]}`);
+                if (images[idx]) setExistingImagePreview(row.querySelector('.match-image-preview'), images[idx]);
             });
         } else if (type === 'true-false') {
             wrapper.querySelector('#tfQuestion').value = question.question_text || '';
@@ -241,8 +252,7 @@ if ($homeworkId > 0) {
             const radio = wrapper.querySelector(`input[type='radio'][value='${correct}']`);
             if (radio) radio.checked = true;
             if (question.image_file) {
-                const tfWrap = wrapper.querySelector('#tfImageUpload')?.parentElement;
-                if (tfWrap) showExistingMediaNote(tfWrap, `Gambar semasa: ${question.image_file}`);
+                setExistingImagePreview(wrapper.querySelector('#tfImagePreview'), question.image_file);
             }
         } else if (type === 'drag-drop') {
             wrapper.querySelector('#instruction').value = question.question_text || '';

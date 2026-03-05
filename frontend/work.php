@@ -84,11 +84,16 @@
               </td>
                 <td class="px-8 py-5 text-right">
                   <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Pensyarah') { ?>
-                      <a href="edit-work.php?id=<?php echo $row['id']; ?>">
-                        <button class="px-4 py-1.5 text-sm rounded-full bg-amber-600 text-white hover:bg-amber-700 transition">
-                          Edit
+                      <div class="inline-flex items-center gap-2">
+                        <a href="edit-work.php?id=<?php echo $row['id']; ?>">
+                          <button class="px-4 py-1.5 text-sm rounded-full bg-amber-600 text-white hover:bg-amber-700 transition">
+                            Edit
+                          </button>
+                        </a>
+                        <button type="button" data-homework-delete-id="<?php echo $row['id']; ?>" class="px-4 py-1.5 text-sm rounded-full bg-red-600 text-white hover:bg-red-700 transition">
+                          Delete
                         </button>
-                      </a>
+                      </div>
                   <?php } else {
                     // Fetch the submission status for this specific homework and student
                     $checkSubmission = mysqli_query($con, "SELECT status FROM student_homework_submissions WHERE homework_id = {$row['id']} AND student_id = {$_SESSION['id']}"); 
@@ -123,6 +128,31 @@
 </div>
 
     
+
+
+<script>
+document.querySelectorAll('[data-homework-delete-id]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const homeworkId = button.getAttribute('data-homework-delete-id');
+    const shouldDelete = window.confirm('Adakah anda pasti mahu padam kerja rumah ini?');
+    if (!shouldDelete) return;
+
+    try {
+      const response = await fetch('../backend/homework-deleteBE.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `homework_id=${encodeURIComponent(homeworkId)}`
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Gagal memadam kerja rumah.');
+
+      window.location.reload();
+    } catch (error) {
+      alert(error.message || 'Gagal memadam kerja rumah.');
+    }
+  });
+});
+</script>
 
 </body>
 <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
