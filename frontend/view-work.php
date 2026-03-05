@@ -11,13 +11,21 @@ $homeworkId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 $homework = null;
 $questions = [];
+$databaseError = '';
 
 if ($homeworkId > 0) {
     $homeworkStmt = mysqli_prepare($con, 'SELECT id, title, description, class, due_date FROM homework WHERE id = ? LIMIT 1');
-    mysqli_stmt_bind_param($homeworkStmt, 'i', $homeworkId);
-    mysqli_stmt_execute($homeworkStmt);
-    $homeworkResult = mysqli_stmt_get_result($homeworkStmt);
-    $homework = mysqli_fetch_assoc($homeworkResult);
+    if ($homeworkStmt) {
+        mysqli_stmt_bind_param($homeworkStmt, 'i', $homeworkId);
+        if (mysqli_stmt_execute($homeworkStmt)) {
+            $homeworkResult = mysqli_stmt_get_result($homeworkStmt);
+            $homework = mysqli_fetch_assoc($homeworkResult);
+        } else {
+            $databaseError = 'Ralat sistem semasa mendapatkan maklumat kerja rumah.';
+        }
+    } else {
+        $databaseError = 'Ralat sistem semasa menyediakan maklumat kerja rumah.';
+    }
 
     $questionStmt = mysqli_prepare(
         $con,
@@ -26,14 +34,24 @@ if ($homeworkId > 0) {
          WHERE homework_id = ?
          ORDER BY id ASC'
     );
-    mysqli_stmt_bind_param($questionStmt, 'i', $homeworkId);
-    mysqli_stmt_execute($questionStmt);
-    $questionResult = mysqli_stmt_get_result($questionStmt);
 
-    while ($row = mysqli_fetch_assoc($questionResult)) {
-        $questions[] = $row;
+    if ($questionStmt) {
+        mysqli_stmt_bind_param($questionStmt, 'i', $homeworkId);
+        if (mysqli_stmt_execute($questionStmt)) {
+            $questionResult = mysqli_stmt_get_result($questionStmt);
+
+            while ($row = mysqli_fetch_assoc($questionResult)) {
+                $questions[] = $row;
+            }
+        } elseif ($databaseError === '') {
+            $databaseError = 'Ralat sistem semasa mendapatkan senarai soalan.';
+        }
+    } elseif ($databaseError === '') {
+        $databaseError = 'Ralat sistem semasa menyediakan senarai soalan.';
     }
 }
+
+$isPastDue = !empty($homework['due_date']) && strtotime((string)$homework['due_date']) < time();
 
 function normalizePath(?string $path): string {
     if (!$path) return '';
@@ -97,7 +115,13 @@ function splitCsvKeepingIndex(?string $value): array
 <?php include('navbar.php'); ?>
 
 <div class="max-w-5xl mx-auto px-6 py-8 space-y-6">
-    <?php if (!$homework): ?>
+    <?php if ($databaseError !== ''): ?>
+        <section class="bg-white rounded-2xl border border-red-200 shadow-sm p-8 text-center space-y-3">
+            <h1 class="text-xl font-semibold text-red-700">Ralat Sistem / Pangkalan Data</h1>
+            <p class="text-sm text-red-600"><?php echo htmlspecialchars($databaseError); ?></p>
+            <a href="work.php" class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Kembali</a>
+        </section>
+    <?php elseif (!$homework): ?>
         <section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center space-y-3">
             <h1 class="text-xl font-semibold text-gray-800">Kerja rumah tidak ditemui</h1>
             <p class="text-sm text-gray-500">Sila kembali ke senarai kerja rumah dan pilih tugasan yang sah.</p>
@@ -233,8 +257,18 @@ function splitCsvKeepingIndex(?string $value): array
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-3">
-            <button id="submitStudentAnswers" type="button" class="w-full inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-60">Hantar Jawapan</button>
+            <button
+                id="submitStudentAnswers"
+                type="button"
+                class="w-full inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-semibold text-white disabled:opacity-60 <?php echo $isPastDue ? 'bg-red-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'; ?>"
+                <?php echo $isPastDue ? 'disabled' : ''; ?>
+            >
+                <?php echo $isPastDue ? 'Late' : 'Hantar Jawapan'; ?>
+            </button>
             <p id="answerStatus" class="text-center text-sm text-gray-600"></p>
+            <?php if ($isPastDue): ?>
+                <p class="text-center text-sm text-red-600">Tarikh akhir telah lepas. Tugasan ini sudah lewat.</p>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
@@ -326,8 +360,33 @@ function splitCsvKeepingIndex(?string $value): array
 
     const submitButton = document.getElementById('submitStudentAnswers');
     const answerStatus = document.getElementById('answerStatus');
+    const isPastDue = <?php echo $isPastDue ? 'true' : 'false'; ?>;
+
+    document.querySelectorAll('img').forEach((img) => {
+        img.addEventListener('error', () => {
+            img.classList.add('hidden');
+            const warning = document.createElement('p');
+            warning.className = 'text-xs text-red-600 mt-2';
+            warning.textContent = 'Ralat memuatkan gambar.';
+            img.insertAdjacentElement('afterend', warning);
+        }, { once: true });
+    });
+
+    document.querySelectorAll('audio').forEach((audio) => {
+        audio.addEventListener('error', () => {
+            const warning = document.createElement('p');
+            warning.className = 'text-xs text-red-600 mt-2';
+            warning.textContent = 'Ralat memuatkan audio.';
+            audio.insertAdjacentElement('afterend', warning);
+        }, { once: true });
+    });
 
     submitButton?.addEventListener('click', async () => {
+        if (isPastDue) {
+            answerStatus.textContent = 'Tarikh akhir telah lepas. Tugasan ini lewat.';
+            answerStatus.className = 'text-center text-sm text-red-600';
+            return;
+        }
         const cards = Array.from(document.querySelectorAll('.question-card'));
         const answers = cards.map((card) => {
             const questionId = Number(card.dataset.questionId || 0);

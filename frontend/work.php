@@ -63,6 +63,7 @@
                   cs.class,
                   shs.id AS submission_id,
                   shs.status,
+                  shs.submitted_at,
                   shs.score
                 FROM class_students cs
                 INNER JOIN users u
@@ -78,16 +79,30 @@
               $studentResult = mysqli_query($con, $studentSql);
 
               while ($studentRow = mysqli_fetch_assoc($studentResult)) {
-                $isSubmitted = $studentRow['status'] === 'submitted';
+                $statusValue = strtolower((string)($studentRow['status'] ?? ''));
+                $isSubmitted = $statusValue === 'submitted';
+                $dueTimestamp = strtotime((string)$row['due_date']);
+                $submittedAtTimestamp = strtotime((string)($studentRow['submitted_at'] ?? ''));
+                $isLate = $isSubmitted && $dueTimestamp !== false && $submittedAtTimestamp !== false && $submittedAtTimestamp > $dueTimestamp;
                 if ($isSubmitted) {
                   $submissionCount++;
+                }
+
+                $studentStatusText = 'Not submitted';
+                $studentStatusBadge = 'bg-rose-100 text-rose-700';
+                if ($isLate) {
+                  $studentStatusText = 'Late';
+                  $studentStatusBadge = 'bg-amber-100 text-amber-700';
+                } elseif ($isSubmitted) {
+                  $studentStatusText = 'Submitted';
+                  $studentStatusBadge = 'bg-emerald-100 text-emerald-700';
                 }
 
                 $studentsByHomework[] = [
                   'student_id' => (int)$studentRow['student_id'],
                   'student_name' => $studentRow['student_name'],
-                  'status' => $isSubmitted ? 'Submitted' : 'Not submitted',
-                  'status_badge' => $isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700',
+                  'status' => $studentStatusText,
+                  'status_badge' => $studentStatusBadge,
                   'score' => $isSubmitted ? ((int)$studentRow['score']) : 0,
                   'is_submitted' => $isSubmitted
                 ];
@@ -134,11 +149,18 @@
                 <?php } else {
                   $checkSubmission = mysqli_query($con, "SELECT status FROM student_homework_submissions WHERE homework_id = {$homeworkId} AND student_id = {$_SESSION['id']}");
                   $submissionStatus = mysqli_fetch_assoc($checkSubmission);
+                  $statusValue = strtolower((string)($submissionStatus['status'] ?? ''));
+                  $alreadySubmitted = $statusValue === 'submitted';
+                  $isPastDue = strtotime((string)$row['due_date']) < time();
 
-                  if ($submissionStatus && $submissionStatus['status'] == 'submitted') {
+                  if ($alreadySubmitted) {
                   ?>
                       <button class="px-4 py-1.5 text-sm rounded-full bg-green-600 text-white cursor-default">
                         Submitted
+                      </button>
+                  <?php } elseif ($isPastDue) { ?>
+                      <button class="px-4 py-1.5 text-sm rounded-full bg-red-600 text-white cursor-not-allowed" disabled>
+                        Late
                       </button>
                   <?php } else { ?>
                       <a href="view-work.php?id=<?php echo $homeworkId; ?>">

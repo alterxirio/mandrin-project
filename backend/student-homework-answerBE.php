@@ -1,7 +1,7 @@
 <?php
 session_start();
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', '0');
 
 header('Content-Type: application/json');
 include('../config/config.php');
@@ -58,13 +58,22 @@ try {
     // ===============================
     // CHECK HOMEWORK EXISTS
     // ===============================
-    $checkHomework = mysqli_prepare($con, "SELECT id FROM homework WHERE id = ? LIMIT 1");
+    $checkHomework = mysqli_prepare($con, "SELECT id, due_date FROM homework WHERE id = ? LIMIT 1");
     mysqli_stmt_bind_param($checkHomework, 'i', $homeworkId);
     mysqli_stmt_execute($checkHomework);
     $homeworkResult = mysqli_stmt_get_result($checkHomework);
 
     if (mysqli_num_rows($homeworkResult) === 0) {
         throw new Exception("Kerja rumah tidak ditemui.");
+    }
+
+    $homeworkRow = mysqli_fetch_assoc($homeworkResult);
+    $isLate = false;
+    if (!empty($homeworkRow['due_date'])) {
+        $dueDateTs = strtotime((string)$homeworkRow['due_date']);
+        if ($dueDateTs !== false && $dueDateTs < time()) {
+            $isLate = true;
+        }
     }
 
     // ===============================
@@ -98,7 +107,7 @@ try {
     mysqli_stmt_bind_param($submissionStmt, 'iis', $homeworkId, $studentId, $status);
 
     if (!mysqli_stmt_execute($submissionStmt)) {
-        throw new Exception("Gagal menyimpan submission.");
+        throw new Exception("Ralat pangkalan data semasa menyimpan penghantaran.");
     }
 
     $submissionId = mysqli_insert_id($con);
@@ -117,7 +126,7 @@ try {
     }
 
     if ($submissionId <= 0) {
-        throw new Exception("Submission ID gagal diperoleh.");
+        throw new Exception("Ralat sistem: ID penghantaran tidak ditemui.");
     }
 
     // ===============================
@@ -190,7 +199,9 @@ try {
              VALUES (?, ?, ?)"
         );
         mysqli_stmt_bind_param($insertAnswerStmt, 'iis', $submissionId, $questionId, $answerText);
-        mysqli_stmt_execute($insertAnswerStmt);
+        if (!mysqli_stmt_execute($insertAnswerStmt)) {
+            throw new Exception("Ralat pangkalan data semasa menyimpan jawapan pelajar.");
+        }
     }
 
     // ===============================
@@ -202,7 +213,9 @@ try {
     );
     // Updated bind_param to include the second 'i' for $totalIncorrect
     mysqli_stmt_bind_param($updateScoreStmt, 'iii', $totalScore, $totalIncorrect, $submissionId);
-    mysqli_stmt_execute($updateScoreStmt);
+    if (!mysqli_stmt_execute($updateScoreStmt)) {
+        throw new Exception("Ralat pangkalan data semasa mengemaskini markah.");
+    }
 
     mysqli_commit($con);
 
@@ -210,7 +223,8 @@ try {
         'success' => true,
         'message' => 'Jawapan berjaya dihantar.',
         'score'   => $totalScore,
-        'incorrect' => $totalIncorrect // Added to response for debugging
+        'incorrect' => $totalIncorrect,
+        'is_late' => $isLate
     ]);
 
 } catch (Exception $e) {
