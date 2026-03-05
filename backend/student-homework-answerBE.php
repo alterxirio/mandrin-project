@@ -10,6 +10,15 @@ function normalizeAnswerText(string $answer, string $questionType): string {
     $normalized = trim($answer);
     $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
 
+    if ($questionType === 'picture') {
+        $items = array_map(
+            static fn($item) => mb_strtolower(trim((string)$item), 'UTF-8'),
+            explode(',', $normalized)
+        );
+        $items = array_values(array_filter($items, static fn($item) => $item !== ''));
+        return implode(',', $items);
+    }
+
     // Rearrange questions are built with drag/drop words and may be stored
     // with commas in DB while the UI submits words joined by spaces.
     if ($questionType === 'rearrange') {
