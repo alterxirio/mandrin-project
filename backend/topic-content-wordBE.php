@@ -67,8 +67,6 @@ if (isset($_POST['add_name'])) {
          $destination = $folder . "default-audio.mp3";
     }
 
-    }
-
     $topik_id = $_GET["topik_id"];
     $meaning = $_POST['add_meaning'];
     $name = $_POST['add_name'];
