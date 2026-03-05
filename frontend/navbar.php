@@ -25,13 +25,13 @@
       <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 rounded-base md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0">
 
         <li>
-          <a href="../frontend/main.php" class="block py-2 px-3 text-white nav-hover rounded">Home</a>
+          <a href="../frontend/main.php" class="block py-2 px-3 text-white nav-hover rounded">Utama</a>
         </li>
 
         <li>
             <button id="dropdownNvbarButton" data-dropdown-toggle="dropdownNavbar" 
                     class="flex items-center justify-between w-full py-2 px-3 rounded font-medium text-white nav-hover md:w-auto">
-              Dropdown 
+              Topik 
               <svg class="w-4 h-4 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
               </svg>
@@ -47,9 +47,8 @@
           </div>
         </li>
 
-        <li><a href="#" class="block py-2 px-3 text-white nav-hover rounded">Services</a></li>
+        <li><a href="../frontend/work.php" class="block py-2 px-3 text-white nav-hover rounded">Latihan</a></li>
         <li><a href="#" class="block py-2 px-3 text-white nav-hover rounded">Pricing</a></li>
-        <li><a href="#" class="block py-2 px-3 text-white nav-hover rounded">Contact</a></li>
 
       </ul>
     </div>
