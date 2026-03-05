@@ -106,6 +106,12 @@ if ($homeworkId > 0) {
                            class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                 </div>
             </div>
+
+            <div class="pt-3 border-t border-gray-100">
+                <button id="deleteHomeworkButton" type="button" class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                    Padam Kerja Rumah
+                </button>
+            </div>
         </section>
 
         <div id="formContainer" class="space-y-6"></div>
@@ -189,6 +195,18 @@ if ($homeworkId > 0) {
         container.appendChild(note);
     }
 
+    function renderExistingImagePreview(container, imagePath) {
+        if (!imagePath) return;
+
+        const preview = container.querySelector('.existing-image-preview') || document.createElement('div');
+        preview.className = 'existing-image-preview h-32 w-full rounded-lg border border-gray-200 bg-cover bg-center bg-no-repeat';
+        preview.style.backgroundImage = `url('../${imagePath}')`;
+
+        if (!preview.parentElement) {
+            container.insertBefore(preview, container.firstChild);
+        }
+    }
+
     function fillQuestionData(wrapper, question) {
         wrapper.dataset.questionId = question.id || '';
         const type = question.type;
@@ -217,7 +235,7 @@ if ($homeworkId > 0) {
                 const radio = card.querySelector("input[type='radio']");
                 input.value = labels[idx] || '';
                 radio.checked = (labels[idx] || '').trim().toLowerCase() === (question.correct_answer || '').trim().toLowerCase();
-                if (images[idx]) showExistingMediaNote(card, `Gambar semasa: ${images[idx]}`);
+                if (images[idx]) renderExistingImagePreview(card, images[idx]);
             });
             if (question.audio_file) {
                 const audioWrap = wrapper.querySelector('#audioUpload')?.parentElement;
@@ -233,7 +251,7 @@ if ($homeworkId > 0) {
             Array.from(list.children).forEach((row, idx) => {
                 const input = row.querySelector("input[type='text']");
                 input.value = words[idx] || '';
-                if (images[idx]) showExistingMediaNote(row, `Gambar semasa: ${images[idx]}`);
+                if (images[idx]) renderExistingImagePreview(row, images[idx]);
             });
         } else if (type === 'true-false') {
             wrapper.querySelector('#tfQuestion').value = question.question_text || '';
@@ -242,7 +260,7 @@ if ($homeworkId > 0) {
             if (radio) radio.checked = true;
             if (question.image_file) {
                 const tfWrap = wrapper.querySelector('#tfImageUpload')?.parentElement;
-                if (tfWrap) showExistingMediaNote(tfWrap, `Gambar semasa: ${question.image_file}`);
+                if (tfWrap) renderExistingImagePreview(tfWrap, question.image_file);
             }
         } else if (type === 'drag-drop') {
             wrapper.querySelector('#instruction').value = question.question_text || '';
@@ -372,6 +390,25 @@ if ($homeworkId > 0) {
         } catch (error) {
             submitStatus.textContent = error.message;
             submitButton.disabled = false;
+        }
+    });
+
+    document.getElementById('deleteHomeworkButton')?.addEventListener('click', async () => {
+        const shouldDelete = window.confirm('Adakah anda pasti mahu padam kerja rumah ini?');
+        if (!shouldDelete) return;
+
+        try {
+            const response = await fetch('../backend/homework-deleteBE.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `homework_id=${encodeURIComponent(homeworkId)}`
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Gagal memadam kerja rumah.');
+
+            window.location.href = 'work.php';
+        } catch (error) {
+            alert(error.message || 'Gagal memadam kerja rumah.');
         }
     });
 
