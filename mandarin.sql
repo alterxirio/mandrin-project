@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 03, 2026 at 11:38 AM
+-- Generation Time: Mar 05, 2026 at 06:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -75,7 +75,13 @@ INSERT INTO `homework` (`id`, `title`, `description`, `class`, `due_date`, `crea
 (27, 'Latihan penguasaan Bahasa Mandrin', NULL, '1A', '2026-03-28', '2026-03-03 10:13:56'),
 (28, 'Latihan penguasaan Bahasa Mandrin', NULL, '1B', '2026-03-03', '2026-03-03 10:24:14'),
 (29, 'Latihan Bab 11', NULL, '1A', '2026-03-03', '2026-03-03 10:33:47'),
-(30, 'Latihan Bab 10', NULL, '1A', '2026-03-21', '2026-03-03 10:36:18');
+(30, 'Latihan Bab 10', NULL, '1A', '2026-03-21', '2026-03-03 10:36:18'),
+(31, 'Latihan Bab 10', NULL, '2A', '2026-03-28', '2026-03-03 14:48:03'),
+(32, 'Latihan penguasaan Bahasa Mandrin', NULL, '2B', '2026-03-28', '2026-03-03 15:38:23'),
+(33, 'Latihan Bab 10', NULL, '2A', '2026-03-04', '2026-03-03 16:26:23'),
+(34, 'Latihan Bab 10', NULL, '1B', '2026-03-06', '2026-03-03 16:27:45'),
+(35, 'Latihan Bab 12', NULL, '2B', '2026-03-28', '2026-03-03 16:30:21'),
+(41, 'Latihan Bab 12', NULL, '2A', '2026-03-19', '2026-03-05 04:30:13');
 
 -- --------------------------------------------------------
 
@@ -117,7 +123,76 @@ INSERT INTO `questions` (`id`, `homework_id`, `type`, `question_text`, `user_ans
 (117, 29, 'rearrange', 'hello', '', NULL, NULL, NULL, NULL, NULL, 'saya,makan ayam,masak kicap', NULL, NULL),
 (118, 30, 'picture', 'Padankan perkataan dengan gambar yang betul.', '', NULL, NULL, NULL, NULL, NULL, 'nefer 2,nefer 1,bruh,ducati', NULL, 'media/homework/images/hw_69a6b9a24e8cb7.57942538.jpg,media/homework/images/hw_69a6b9a24f2618.21497883.jpg,media/homework/images/hw_69a6b9a24fe5a3.29771826.png,media/homework/images/hw_69a6b9a250b9b8.58380502.jpg'),
 (119, 30, 'listening', 'hello', '', NULL, NULL, NULL, NULL, 'ducati,nefer 1,bruh', 'nefer 1', 'media/homework/audio/hw_69a6b9a2539c51.22613305.mp3', 'media/homework/images/hw_69a6b9a2518b97.22479109.jpg,media/homework/images/hw_69a6b9a2521fc1.81402306.jpg,media/homework/images/hw_69a6b9a252b778.80986676.png'),
-(120, 30, 'rearrange', 'hello', '', NULL, NULL, NULL, NULL, NULL, 'saya,sangat,pandai', NULL, NULL);
+(120, 30, 'rearrange', 'hello', '', NULL, NULL, NULL, NULL, NULL, 'saya,sangat,pandai', NULL, NULL),
+(121, 31, 'rearrange', 'hello', '', NULL, NULL, NULL, NULL, NULL, 'saya,merupakan pelajar,yang sangat,cerdik dan pand', NULL, NULL),
+(122, 32, 'rearrange', 'hello', '', NULL, NULL, NULL, NULL, NULL, 'saya,makan,ayam goreng', NULL, NULL),
+(123, 33, 'listening', 'hello', '', NULL, NULL, NULL, NULL, 'bruh,ducati', 'ducati', 'media/homework/audio/hw_69a70baf606a62.91020115.mp3', 'media/homework/images/hw_69a70baf5a32e0.56765555.png,media/homework/images/hw_69a70baf5a4b46.97387669.jpg'),
+(124, 34, 'picture', 'helllo', '', NULL, NULL, NULL, NULL, NULL, 'angel,ducati,nefer 2,nefer 1', NULL, 'media/homework/images/hw_69a70c015858d4.34727410.jpg,media/homework/images/hw_69a70c0158c520.15961772.jpg,media/homework/images/hw_69a70c01591315.46488978.jpg,media/homework/images/hw_69a70c01595002.63072235.jpg'),
+(125, 35, 'mcq', 'Planet', '', 'bumi', 'bulan', 'matahari', 'Bima Sakti', NULL, 'bumi', NULL, NULL),
+(126, 35, 'truefalse', 'Gambar rajah di bawah Menunjukkan seseornag sedang duduk', '', NULL, NULL, NULL, NULL, NULL, 'true', NULL, 'media/homework/images/hw_69a70c9d266706.83132301.jpg'),
+(136, 41, 'picture', 'Padankan perkataan dengan gambar yang betul.', '', NULL, NULL, NULL, NULL, NULL, 'nefer 2,nefer 1,raya', NULL, 'media/homework/images/hw_69a906d527fda9.95242284.jpg,media/homework/images/hw_69a906d5290301.53568507.jpg,media/homework/images/hw_69a906d529e059.21699268.png');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_homework_answers`
+--
+
+CREATE TABLE `student_homework_answers` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `submission_id` int(10) UNSIGNED NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `answer_text` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `student_homework_answers`
+--
+
+INSERT INTO `student_homework_answers` (`id`, `submission_id`, `question_id`, `answer_text`, `created_at`) VALUES
+(1, 1, 122, 'saya makan ayam goreng', '2026-03-03 15:47:37'),
+(2, 2, 122, 'saya makan ayam goreng', '2026-03-03 16:23:14'),
+(3, 3, 125, 'bumi', '2026-03-03 16:30:33'),
+(4, 3, 126, 'true', '2026-03-03 16:30:33'),
+(5, 4, 123, 'ducati', '2026-03-03 16:31:54'),
+(6, 5, 125, 'bumi', '2026-03-03 16:32:36'),
+(7, 5, 126, 'true', '2026-03-03 16:32:36'),
+(11, 7, 121, 'saya merupakan pelajar yang sangat cerdik dan pand', '2026-03-04 03:39:00'),
+(22, 14, 136, 'nefer 2,nefer 3,raya', '2026-03-05 04:34:17'),
+(23, 15, 136, 'nefer 2,nefer 1,raya', '2026-03-05 04:36:16');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_homework_submissions`
+--
+
+CREATE TABLE `student_homework_submissions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `homework_id` int(10) UNSIGNED NOT NULL,
+  `student_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('draft','submitted') NOT NULL DEFAULT 'submitted',
+  `submitted_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `score` int(11) DEFAULT 0,
+  `incorrect` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `student_homework_submissions`
+--
+
+INSERT INTO `student_homework_submissions` (`id`, `homework_id`, `student_id`, `status`, `submitted_at`, `created_at`, `updated_at`, `score`, `incorrect`) VALUES
+(1, 32, 4, 'submitted', '2026-03-03 23:47:37', '2026-03-03 15:47:37', '2026-03-03 15:47:37', 0, 0),
+(2, 32, 3, 'submitted', '2026-03-04 00:23:14', '2026-03-03 16:23:14', '2026-03-03 16:23:14', 0, 0),
+(3, 35, 3, 'submitted', '2026-03-04 00:30:33', '2026-03-03 16:30:33', '2026-03-03 16:30:33', 2, 0),
+(4, 33, 3, 'submitted', '2026-03-04 00:31:54', '2026-03-03 16:31:54', '2026-03-03 16:31:54', 1, 0),
+(5, 35, 4, 'submitted', '2026-03-04 00:32:36', '2026-03-03 16:32:36', '2026-03-03 16:32:36', 2, 0),
+(7, 31, 3, 'submitted', '2026-03-04 11:39:00', '2026-03-04 03:38:48', '2026-03-04 03:39:00', 0, 1),
+(14, 41, 3, 'submitted', '2026-03-05 12:34:17', '2026-03-05 04:34:17', '2026-03-05 04:34:17', 0, 1),
+(15, 41, 2, 'submitted', '2026-03-05 12:36:16', '2026-03-05 04:36:16', '2026-03-05 04:36:16', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -165,7 +240,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `nama`, `angkagiliran`, `password`, `role`) VALUES
 (1, 'Admin Pensyarah', 'admin01', 'admin01', 'Pensyarah'),
 (2, 'Siti Pelajar', 'student01', 'student01', 'Pelajar'),
-(3, 'Ali Pelajar', 'student02', 'student02', 'Pelajar');
+(3, 'Ali Pelajar', 'student02', 'student02', 'Pelajar'),
+(4, 'Umirah Syamina', 'BKV0425KA008', '1245', 'Pensyarah');
 
 -- --------------------------------------------------------
 
@@ -219,6 +295,22 @@ ALTER TABLE `questions`
   ADD KEY `homework_id` (`homework_id`);
 
 --
+-- Indexes for table `student_homework_answers`
+--
+ALTER TABLE `student_homework_answers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_submission_question` (`submission_id`,`question_id`),
+  ADD KEY `idx_student_answer_question` (`question_id`);
+
+--
+-- Indexes for table `student_homework_submissions`
+--
+ALTER TABLE `student_homework_submissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_submission_student_homework` (`homework_id`,`student_id`),
+  ADD KEY `idx_submission_student` (`student_id`);
+
+--
 -- Indexes for table `topics`
 --
 ALTER TABLE `topics`
@@ -253,13 +345,25 @@ ALTER TABLE `dialogues`
 -- AUTO_INCREMENT for table `homework`
 --
 ALTER TABLE `homework`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `questions`
 --
 ALTER TABLE `questions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137;
+
+--
+-- AUTO_INCREMENT for table `student_homework_answers`
+--
+ALTER TABLE `student_homework_answers`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+
+--
+-- AUTO_INCREMENT for table `student_homework_submissions`
+--
+ALTER TABLE `student_homework_submissions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `topics`
@@ -271,7 +375,7 @@ ALTER TABLE `topics`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `words`
@@ -288,6 +392,20 @@ ALTER TABLE `words`
 --
 ALTER TABLE `dialogues`
   ADD CONSTRAINT `fk_dialogues_topic` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `student_homework_answers`
+--
+ALTER TABLE `student_homework_answers`
+  ADD CONSTRAINT `fk_answer_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_answer_submission` FOREIGN KEY (`submission_id`) REFERENCES `student_homework_submissions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `student_homework_submissions`
+--
+ALTER TABLE `student_homework_submissions`
+  ADD CONSTRAINT `fk_submission_homework` FOREIGN KEY (`homework_id`) REFERENCES `homework` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_submission_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `words`
