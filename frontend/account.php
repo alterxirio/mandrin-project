@@ -14,6 +14,7 @@ $studentStats = [
 $scoreTextClass = 'text-green-600';
 $studentId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
 $isStudent = isset($_SESSION['role']) && strtolower((string)$_SESSION['role']) === 'pelajar';
+$upcomingHomework = null;
 
 if ($isStudent && $studentId > 0 && $con instanceof mysqli) {
     $statsSql = "
@@ -64,6 +65,28 @@ if ($isStudent && $studentId > 0 && $con instanceof mysqli) {
                 'has_data' => $totalHomework > 0,
             ];
         }
+    }
+
+    $upcomingSql = "
+        SELECT h.id, h.title, h.due_date
+        FROM class_students cs
+        INNER JOIN homework h ON h.class = cs.class
+        LEFT JOIN student_homework_submissions shs
+            ON shs.homework_id = h.id
+            AND shs.student_id = cs.student_id
+        WHERE cs.student_id = ?
+          AND h.due_date >= NOW()
+          AND LOWER(COALESCE(shs.status, '')) <> 'submitted'
+        ORDER BY h.due_date ASC, h.id ASC
+        LIMIT 1
+    ";
+
+    $upcomingStmt = mysqli_prepare($con, $upcomingSql);
+    if ($upcomingStmt) {
+        mysqli_stmt_bind_param($upcomingStmt, 'i', $studentId);
+        mysqli_stmt_execute($upcomingStmt);
+        $upcomingResult = mysqli_stmt_get_result($upcomingStmt);
+        $upcomingHomework = $upcomingResult ? mysqli_fetch_assoc($upcomingResult) : null;
     }
 }
 
@@ -137,6 +160,26 @@ if ($averageValue <= 49) {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="mt-6 rounded-xl border border-gray-200 p-6 bg-white">
+                <p class="text-sm font-medium text-gray-500 mb-4">Upcoming Homework</p>
+
+                <?php if ($upcomingHomework) { ?>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-4">
+                        <div>
+                            <p class="text-base font-semibold text-blue-900"><?php echo htmlspecialchars($upcomingHomework['title']); ?></p>
+                            <p class="text-sm text-blue-700 mt-1">Due: <?php echo htmlspecialchars($upcomingHomework['due_date']); ?></p>
+                        </div>
+                        <a href="view-work.php?id=<?php echo (int)$upcomingHomework['id']; ?>" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white text-sm font-medium hover:bg-blue-700 transition">
+                            Buka Kerja Rumah
+                        </a>
+                    </div>
+                <?php } else { ?>
+                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4">
+                        <p class="text-sm font-medium text-emerald-700">Yeay tiada kerja rumah perlu disiapkan.</p>
+                    </div>
+                <?php } ?>
             </div>
             <?php } ?>
         </section>
