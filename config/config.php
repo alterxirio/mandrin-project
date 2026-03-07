@@ -1,3 +1,4 @@
 <?php
-    $con = mysqli_connect('localhost','root','','mandarin',3307);
+    mysqli_report(MYSQLI_REPORT_OFF);
+    $con = mysqli_connect('localhost', 'root', '', 'mandarin', 3307);
 ?>
