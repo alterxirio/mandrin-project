@@ -1,0 +1,169 @@
+.account-page-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.account-shell {
+  width: min(980px, 100%);
+  background: #e5e7eb;
+  border: 3px solid #7c3aed;
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+
+.account-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.alert-success,
+.alert-error {
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.profile-meta {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.account-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+
+.account-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.outlined-black {
+  border: 3px solid #111827;
+}
+
+.outlined-orange {
+  border: 3px solid #f59e0b;
+}
+
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.card-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.card-form input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.42rem 0.5rem;
+  background: #f9fafb;
+}
+
+.primary-btn,
+.danger-btn {
+  border: none;
+  border-radius: 7px;
+  padding: 0.5rem 0.75rem;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: #d32f2f;
+}
+
+.danger-btn {
+  background: #b91c1c;
+}
+
+.stats-card {
+  grid-column: 1 / -1;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.stat-item {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #9a3412;
+  margin-bottom: 0.2rem;
+}
+
+.stat-item strong {
+  font-size: 1.4rem;
+  color: #7c2d12;
+}
+
+@media (max-width: 768px) {
+  .account-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
