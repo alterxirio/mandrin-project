@@ -48,7 +48,7 @@
         </li>
 
         <li><a href="../frontend/work.php" class="block py-2 px-3 text-white nav-hover rounded">Latihan</a></li>
-        <li><a href="#" class="block py-2 px-3 text-white nav-hover rounded">Pricing</a></li>
+        <li><a href="../frontend/account.php" class="block py-2 px-3 text-white nav-hover rounded">Akaun</a></li>
 
       </ul>
     </div>
