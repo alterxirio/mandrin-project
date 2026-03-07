@@ -239,7 +239,7 @@
   </div>
 
   <?php if ($isTeacher) { ?>
-  <a href="../frontend/add-work.php"><button class="w-[80vw] mt-6 flex items-center justify-center border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 text-3xl" style="border-radius: 22px; height: 150px;">+</button></a>
+  <a href="../frontend/add-work.php"><button class="w-[80vw] mb-7 mt-6 flex items-center justify-center border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 text-3xl" style="border-radius: 22px; height: 150px;">+</button></a>
 <?php } ?>
 </div>
 
