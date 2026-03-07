@@ -139,3 +139,32 @@
     
 }
 
+
+/* Reusable edit profile button with black corner triangle */
+.edit-profile-btn {
+    position: relative;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.edit-profile-btn:hover {
+    background: #f3f4f6;
+}
+
+.edit-profile-btn::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid #111827;
+    border-left: 10px solid transparent;
+}
