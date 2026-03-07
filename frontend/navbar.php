@@ -1,7 +1,11 @@
 <?php
   include('../config/config.php');
-  $sql = "SELECT * FROM topics";
-  $result = mysqli_query($con, $sql);
+  $result = false;
+
+  if ($con instanceof mysqli) {
+    $sql = "SELECT * FROM topics";
+    $result = mysqli_query($con, $sql);
+  }
 ?>
 
 <nav class="fixed w-full z-20 top-0 start-0 border-default" style="background-color: #B71C1C;">
@@ -40,15 +44,19 @@
           <!-- Dropdown menu -->
           <div id="dropdownNavbar" class="z-10 hidden rounded-lg shadow-lg w-44 mt-2" style="background-color: #B71C1C;">
               <ul class="p-2 text-sm font-medium">
-                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                  <li><a href="../frontend/topic-content.php?id='<?php echo $row['id']?>'" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
-                <?php } ?>
+                <?php if ($result): ?>
+                  <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                    <li><a href="../frontend/topic-content.php?id='<?php echo $row['id']?>'" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
+                  <?php } ?>
+                <?php else: ?>
+                  <li><span class="inline-flex items-center w-full p-2 rounded text-white/80">Tiada topik</span></li>
+                <?php endif; ?>
               </ul>
           </div>
         </li>
 
         <li><a href="../frontend/work.php" class="block py-2 px-3 text-white nav-hover rounded">Latihan</a></li>
-        <li><a href="#" class="block py-2 px-3 text-white nav-hover rounded">Pricing</a></li>
+        <li><a href="../frontend/account.php" class="block py-2 px-3 text-white nav-hover rounded">Akaun</a></li>
 
       </ul>
     </div>
