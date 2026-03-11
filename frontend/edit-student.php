@@ -8,11 +8,10 @@ if (!isset($_SESSION['role']) || strtolower((string)$_SESSION['role']) !== 'pens
 }
 
 $allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
+$year = date('Y');
 $classOptions = [];
-for ($year = 2024; $year <= 2035; $year++) {
-    foreach ($allowedPrograms as $program) {
-        $classOptions[] = '2 DVM ' . $program . ' ' . $year;
-    }
+foreach ($allowedPrograms as $program) {
+    $classOptions[] = '2 DVM ' . $program . ' ' . $year;
 }
 
 $studentId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
