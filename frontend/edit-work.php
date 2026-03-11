@@ -93,8 +93,13 @@ if ($homeworkId > 0) {
                     <select id="classSelect"
                             class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                         <option value="">-- Pilih Kelas --</option>
-                        <?php foreach (['1A','1B','2A','2B'] as $classOpt): ?>
-                            <option value="<?php echo $classOpt; ?>" <?php echo ($homework['class'] === $classOpt) ? 'selected' : ''; ?>>Kelas <?php echo $classOpt; ?></option>
+                        <?php
+                        $allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
+                        $currentYear = (int)date('Y');
+                        foreach ($allowedPrograms as $program):
+                            $classOpt = '2 DVM ' . $program . ' ' . $currentYear;
+                        ?>
+                            <option value="<?php echo htmlspecialchars($classOpt); ?>" <?php echo ($homework['class'] === $classOpt) ? 'selected' : ''; ?>><?php echo htmlspecialchars($classOpt); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
