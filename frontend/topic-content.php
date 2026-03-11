@@ -58,15 +58,17 @@
         <!-- Vertical Menu -->
         <div class="mid-header vertical-menu">
 
-            <button id="btnWord">
-                <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
-                        <span class="material-symbols-outlined">menu_book</span>
+            <button id="btnWord" class="menu-toggle is-active" type="button" aria-label="Perkataan">
+                <div class="mid-header-component">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <span class="menu-label">Perkataan</span>
                 </div>
             </button>
 
-            <button id="btnDialogue" >
-                <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
-                        <span class="material-symbols-outlined">chat_bubble</span>
+            <button id="btnDialogue" class="menu-toggle" type="button" aria-label="Dialog">
+                <div class="mid-header-component">
+                    <span class="material-symbols-outlined">chat_bubble</span>
+                    <span class="menu-label">Dialog</span>
                 </div>
             </button>
 
@@ -530,14 +532,21 @@
     const wordContainer = document.getElementById("wordContainer");
     const dialogueContainer = document.getElementById("dialogueContainer");
 
+    const setActiveTab = (activeButton, inactiveButton) => {
+        activeButton.classList.add("is-active");
+        inactiveButton.classList.remove("is-active");
+    };
+
     btnWord.addEventListener("click", () => {
         wordContainer.classList.remove("hide");
         dialogueContainer.classList.add("hide");
+        setActiveTab(btnWord, btnDialogue);
     });
 
     btnDialogue.addEventListener("click", () => {
         dialogueContainer.classList.remove("hide");
         wordContainer.classList.add("hide");
+        setActiveTab(btnDialogue, btnWord);
     });
 
 
