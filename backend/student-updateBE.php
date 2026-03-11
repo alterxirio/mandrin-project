@@ -12,8 +12,7 @@ $studentName = isset($_POST['student_name']) ? trim((string)$_POST['student_name
 $studentClass = isset($_POST['student_class']) ? trim((string)$_POST['student_class']) : '';
 
 $allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
-$currentYear = date('Y');
-$classPattern = '/^2 DVM (' . implode('|', $allowedPrograms) . ') ' . preg_quote($currentYear, '/') . '$/';
+$classPattern = '/^2 DVM (' . implode('|', $allowedPrograms) . ') (20[2-3][0-9])$/';
 
 if ($studentId <= 0 || $studentName === '' || $studentClass === '' || !preg_match($classPattern, $studentClass)) {
     header('Location: ../frontend/account.php');
