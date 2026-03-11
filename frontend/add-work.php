@@ -38,10 +38,17 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pensyarah') {
                     <select id="classSelect"
                             class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm focus:border-red-500 focus:ring-red-500">
                         <option value="">-- Pilih Kelas --</option>
-                        <option value="1A">Kelas 1A</option>
-                        <option value="1B">Kelas 1B</option>
-                        <option value="2A">Kelas 2A</option>
-                        <option value="2B">Kelas 2B</option>
+                        <?php
+                        $allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
+                        for ($year = 2024; $year <= 2035; $year++) {
+                            foreach ($allowedPrograms as $program) {
+                                $className = '2 DVM ' . $program . ' ' . $year;
+                                ?>
+                                <option value="<?php echo htmlspecialchars($className); ?>"><?php echo htmlspecialchars($className); ?></option>
+                                <?php
+                            }
+                        }
+                        ?>
                     </select>
                 </div>
 
