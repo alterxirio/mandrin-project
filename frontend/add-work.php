@@ -40,13 +40,12 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Pensyarah') {
                         <option value="">-- Pilih Kelas --</option>
                         <?php
                         $allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
-                        for ($year = 2024; $year <= 2035; $year++) {
-                            foreach ($allowedPrograms as $program) {
-                                $className = '2 DVM ' . $program . ' ' . $year;
-                                ?>
-                                <option value="<?php echo htmlspecialchars($className); ?>"><?php echo htmlspecialchars($className); ?></option>
-                                <?php
-                            }
+                        $year = date('Y');
+                        foreach ($allowedPrograms as $program) {
+                            $className = '2 DVM ' . $program . ' ' . $year;
+                            ?>
+                            <option value="<?php echo htmlspecialchars($className); ?>"><?php echo htmlspecialchars($className); ?></option>
+                            <?php
                         }
                         ?>
                     </select>

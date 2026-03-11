@@ -2,6 +2,12 @@
 session_start();
 include('../config/config.php');
 
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header('Location: ../index.php');
+    exit;
+}
+
 $studentStats = [
     'average_score' => 0,
     'correct_answer' => 0,
@@ -238,48 +244,55 @@ if ($averageValue <= 49) {
             <?php } ?>
 
             <?php if ($isTeacher) { ?>
-            <div class="mt-8 space-y-4">
-                <h2 class="text-xl font-bold text-gray-900">Status Kelas</h2>
-                <?php if (count($teacherClassStats) > 0) { ?>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <?php foreach ($teacherClassStats as $classStat) { ?>
-                            <article class="rounded-xl border border-gray-200 bg-white p-5">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p class="text-sm text-gray-500">Kelas</p>
-                                        <h3 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($classStat['class']); ?></h3>
-                                        <p class="text-sm text-gray-600 mt-1"><?php echo (int)$classStat['total_students']; ?> pelajar</p>
+                <div class="mt-8 space-y-4">
+                    <h2 class="text-xl font-bold text-gray-900">Status Kelas</h2>
+                    <?php if (count($teacherClassStats) > 0) { ?>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <?php foreach ($teacherClassStats as $classStat) { ?>
+                                <article class="rounded-xl border border-gray-200 bg-white p-5">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="text-sm text-gray-500">Kelas</p>
+                                            <h3 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($classStat['class']); ?></h3>
+                                            <p class="text-sm text-gray-600 mt-1"><?php echo (int)$classStat['total_students']; ?> pelajar</p>
+                                        </div>
+                                        <span class="text-2xl font-bold text-red-600"><?php echo number_format((float)$classStat['average_score'], 1); ?>%</span>
                                     </div>
-                                    <span class="text-2xl font-bold text-red-600"><?php echo number_format((float)$classStat['average_score'], 1); ?>%</span>
-                                </div>
-                                <div class="mt-4 grid grid-cols-3 gap-2 text-center">
-                                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-2">
-                                        <p class="text-xs text-emerald-700">Betul</p>
-                                        <p class="text-lg font-semibold text-emerald-700"><?php echo (int)$classStat['correct_answer']; ?></p>
+                                    <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                                        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-2">
+                                            <p class="text-xs text-emerald-700">Betul</p>
+                                            <p class="text-lg font-semibold text-emerald-700"><?php echo (int)$classStat['correct_answer']; ?></p>
+                                        </div>
+                                        <div class="rounded-lg border border-rose-200 bg-rose-50 p-2">
+                                            <p class="text-xs text-rose-700">Salah</p>
+                                            <p class="text-lg font-semibold text-rose-700"><?php echo (int)$classStat['incorrect_answer']; ?></p>
+                                        </div>
+                                        <div class="rounded-lg border border-gray-300 bg-gray-100 p-2">
+                                            <p class="text-xs text-gray-700">Belum Hantar</p>
+                                            <p class="text-lg font-semibold text-gray-700"><?php echo (int)$classStat['not_submit']; ?></p>
+                                        </div>
                                     </div>
-                                    <div class="rounded-lg border border-rose-200 bg-rose-50 p-2">
-                                        <p class="text-xs text-rose-700">Salah</p>
-                                        <p class="text-lg font-semibold text-rose-700"><?php echo (int)$classStat['incorrect_answer']; ?></p>
-                                    </div>
-                                    <div class="rounded-lg border border-gray-300 bg-gray-100 p-2">
-                                        <p class="text-xs text-gray-700">Belum Hantar</p>
-                                        <p class="text-lg font-semibold text-gray-700"><?php echo (int)$classStat['not_submit']; ?></p>
-                                    </div>
-                                </div>
-                                <a href="class-students.php?class=<?php echo urlencode($classStat['class']); ?>" class="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">
-                                    Lihat Pelajar
-                                </a>
-                            </article>
-                        <?php } ?>
-                    </div>
-                <?php } else { ?>
-                    <div class="rounded-lg border border-gray-300 bg-gray-50 p-4">
-                        <p class="text-sm text-gray-600">Belum ada kelas untuk dipaparkan.</p>
-                    </div>
-                <?php } ?>
-            </div>
+                                    <a href="class-students.php?class=<?php echo urlencode($classStat['class']); ?>" class="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition">
+                                        Lihat Pelajar
+                                    </a>
+                                </article>
+                            <?php } ?>
+                        </div>
+                    <?php } else { ?>
+                        <div class="rounded-lg border border-gray-300 bg-gray-50 p-4">
+                            <p class="text-sm text-gray-600">Belum ada kelas untuk dipaparkan.</p>
+                        </div>
+                    <?php } ?>
+                    
+                </div>
             <?php } ?>
+
         </section>
+
+        <form method="post">
+            <button class="inline-flex items-center mt-4 justify-center rounded-lg bg-red-600 px-6 py-4 text-sm font-medium text-white hover:bg-red-700 transition"  type="submit" name="logout">Log Keluar</button>
+        </form>
+
     </main>
 </body>
 </html>
