@@ -187,7 +187,6 @@
                 </button>
             <?php } ?>
         </div>
-
     </div>
 </div>
 
@@ -581,6 +580,120 @@
         wordContainer.classList.add("hide");
     });
 
+    const situasiList = document.getElementById("situasiList");
+    const situasiNameInput = document.getElementById("new_situasi_name");
+    const situasiEditIndex = document.getElementById("situasi_edit_index");
+    const situasiModalTitle = document.getElementById("situasi-modal-title");
+    const openSituasiModalBtn = document.getElementById("open-situasi-modal-btn");
+    const saveSituasiBtn = document.getElementById("save-situasi-btn");
+    const situasiStorageKey = "situasi_topic_<?php echo (int)$_GET['id']; ?>";
+    let situasiItems = [];
+
+    function renderSituasiCards() {
+        if (!situasiList) return;
+
+        if (!situasiItems.length) {
+            situasiList.innerHTML = "";
+            return;
+        }
+
+        situasiList.innerHTML = situasiItems.map((situasi, index) => `
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">${situasi.name}</h2>
+
+                    <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                        <div class="flex items-center gap-2">
+                            <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
+                                <span class="material-icons">delete</span>
+                            </button>
+                            <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
+                                <span class="material-icons">edit</span>
+                            </button>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                    <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <span class="material-icons">add</span>
+                        Add New Dialogue Line
+                    </button>
+                <?php } ?>
+            </div>
+        `).join("");
+    }
+
+    function saveSituasiToStorage() {
+        localStorage.setItem(situasiStorageKey, JSON.stringify(situasiItems));
+    }
+
+    function resetSituasiModal() {
+        situasiNameInput.value = "";
+        situasiEditIndex.value = "-1";
+        situasiModalTitle.textContent = "Tambah Situasi Baharu";
+    }
+
+    try {
+        const storedSituasi = JSON.parse(localStorage.getItem(situasiStorageKey) || "[]");
+        if (Array.isArray(storedSituasi)) {
+            situasiItems = storedSituasi;
+        }
+    } catch (_) {
+        situasiItems = [];
+    }
+
+    renderSituasiCards();
+
+    if (openSituasiModalBtn) {
+        openSituasiModalBtn.addEventListener("click", resetSituasiModal);
+    }
+
+    if (saveSituasiBtn) {
+        saveSituasiBtn.addEventListener("click", function () {
+            const name = (situasiNameInput.value || "").trim();
+            if (!name) return;
+
+            const editIndex = parseInt(situasiEditIndex.value, 10);
+            if (Number.isInteger(editIndex) && editIndex >= 0 && editIndex < situasiItems.length) {
+                situasiItems[editIndex].name = name;
+            } else {
+                situasiItems.push({ name });
+            }
+
+            saveSituasiToStorage();
+            renderSituasiCards();
+
+            const modal = new Modal(document.getElementById('new-situasi-modal'));
+            modal.hide();
+            resetSituasiModal();
+        });
+    }
+
+    if (situasiList) {
+        situasiList.addEventListener("click", function (event) {
+            const editBtn = event.target.closest('.situasi-edit-btn');
+            if (editBtn) {
+                const index = parseInt(editBtn.getAttribute('data-index'), 10);
+                if (!Number.isInteger(index) || !situasiItems[index]) return;
+
+                situasiNameInput.value = situasiItems[index].name;
+                situasiEditIndex.value = String(index);
+                situasiModalTitle.textContent = "Edit Situasi";
+                return;
+            }
+
+            const deleteBtn = event.target.closest('.situasi-delete-btn');
+            if (deleteBtn) {
+                const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
+                if (!Number.isInteger(index) || !situasiItems[index]) return;
+
+                situasiItems.splice(index, 1);
+                saveSituasiToStorage();
+                renderSituasiCards();
+            }
+        });
+    }
 
 
     document.querySelectorAll('.edit-dialogue-btn').forEach(btn => {
