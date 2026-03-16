@@ -114,65 +114,43 @@
 
         </div>
 
-        <?php
-            $topik_id = $_GET['id'];
-            $sql = "SELECT * FROM dialogues WHERE topic_id = $topik_id";
-            $dialogue = mysqli_query($con, $sql);
-        ?>
-
-        <div class="dialogue-container hide" id="dialogueContainer">
-            <div class="p-6 bg-white rounded-lg shadow space-y-6">
-
-                <?php while ($row = mysqli_fetch_assoc($dialogue)) { ?>
-
-                    <div class="flex items-start space-x-4">
-                        <!-- Avatar -->
-                        <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">A</div>
-                        </div>
-
-                        <!-- Bubble -->
-                        <div class="relative bg-gray-100 rounded-2xl p-6 w-5/6 text-lg flex flex-col">
-                            <!-- Text -->
-                            <p class="mb-4"><?php echo $row['chinese_text']; ?></p>
-
-                            <!-- Button aligned bottom-right -->
-                            <div class="self-end flex">
-
-                                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-
-                                    <button class="delete-btn mr-3" type="button" title="Delete" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
-                                        <span class="material-icons">delete</span>
-                                    </button>
-
-                                    <button class="edit-dialogue-btn mr-3" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
-                                        <span class="material-icons">edit</span>
-                                    </button>
-
-                                <?php } ?>
-
-
-                                <button onclick="playAudio('<?php echo $row['audio_path']; ?>')" 
-                                        class="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-6.518-3.76A1 1 0 007 8.243v7.514a1 1 0 001.234.97l6.518-1.88a1 1 0 00.752-.97v-3.64a1 1 0 00-.752-.97z"/>
-                                    </svg>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                <?php } ?>
-
-            </div>
+        <div class="dialogue-container hide space-y-6" id="dialogueContainer">
+            <div id="situasiList" class="space-y-6"></div>
 
             <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" class="word-btn add-word-btn mt-8" style="border-radius: 22px;">+</button>
+                <button id="open-situasi-modal-btn" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal" type="button" class="w-full rounded-2xl bg-red-600 text-white py-4 px-6 font-semibold text-lg shadow hover:bg-red-700 transition flex items-center justify-center gap-2">
+                    <span class="material-icons">add</span>
+                    Tambah Situasi Baharu
+                </button>
             <?php } ?>
-
         </div>
 
+    </div>
+</div>
+
+
+<div id="new-situasi-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-full max-w-xl max-h-full">
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 id="situasi-modal-title" class="text-xl font-semibold text-gray-900">Tambah Situasi Baharu</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="new-situasi-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <div class="px-5 pt-5 pb-2">
+                <label for="new_situasi_name" class="block mb-2 text-sm font-medium text-gray-900">Nama Situasi</label>
+                <input type="text" id="new_situasi_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Contoh: Situasi 2: Di Restoran / 在餐厅">
+                <input type="hidden" id="situasi_edit_index" value="-1">
+            </div>
+            <div class="px-5 pb-5 pt-2 flex justify-end gap-2">
+                <button type="button" data-modal-hide="new-situasi-modal" class="py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100">Batal</button>
+                <button id="save-situasi-btn" type="button" class="py-2 px-4 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">Simpan</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -540,6 +518,120 @@
         wordContainer.classList.add("hide");
     });
 
+    const situasiList = document.getElementById("situasiList");
+    const situasiNameInput = document.getElementById("new_situasi_name");
+    const situasiEditIndex = document.getElementById("situasi_edit_index");
+    const situasiModalTitle = document.getElementById("situasi-modal-title");
+    const openSituasiModalBtn = document.getElementById("open-situasi-modal-btn");
+    const saveSituasiBtn = document.getElementById("save-situasi-btn");
+    const situasiStorageKey = "situasi_topic_<?php echo (int)$_GET['id']; ?>";
+    let situasiItems = [];
+
+    function renderSituasiCards() {
+        if (!situasiList) return;
+
+        if (!situasiItems.length) {
+            situasiList.innerHTML = "";
+            return;
+        }
+
+        situasiList.innerHTML = situasiItems.map((situasi, index) => `
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">${situasi.name}</h2>
+
+                    <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                        <div class="flex items-center gap-2">
+                            <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
+                                <span class="material-icons">delete</span>
+                            </button>
+                            <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
+                                <span class="material-icons">edit</span>
+                            </button>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                    <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <span class="material-icons">add</span>
+                        Add New Dialogue Line
+                    </button>
+                <?php } ?>
+            </div>
+        `).join("");
+    }
+
+    function saveSituasiToStorage() {
+        localStorage.setItem(situasiStorageKey, JSON.stringify(situasiItems));
+    }
+
+    function resetSituasiModal() {
+        situasiNameInput.value = "";
+        situasiEditIndex.value = "-1";
+        situasiModalTitle.textContent = "Tambah Situasi Baharu";
+    }
+
+    try {
+        const storedSituasi = JSON.parse(localStorage.getItem(situasiStorageKey) || "[]");
+        if (Array.isArray(storedSituasi)) {
+            situasiItems = storedSituasi;
+        }
+    } catch (_) {
+        situasiItems = [];
+    }
+
+    renderSituasiCards();
+
+    if (openSituasiModalBtn) {
+        openSituasiModalBtn.addEventListener("click", resetSituasiModal);
+    }
+
+    if (saveSituasiBtn) {
+        saveSituasiBtn.addEventListener("click", function () {
+            const name = (situasiNameInput.value || "").trim();
+            if (!name) return;
+
+            const editIndex = parseInt(situasiEditIndex.value, 10);
+            if (Number.isInteger(editIndex) && editIndex >= 0 && editIndex < situasiItems.length) {
+                situasiItems[editIndex].name = name;
+            } else {
+                situasiItems.push({ name });
+            }
+
+            saveSituasiToStorage();
+            renderSituasiCards();
+
+            const modal = new Modal(document.getElementById('new-situasi-modal'));
+            modal.hide();
+            resetSituasiModal();
+        });
+    }
+
+    if (situasiList) {
+        situasiList.addEventListener("click", function (event) {
+            const editBtn = event.target.closest('.situasi-edit-btn');
+            if (editBtn) {
+                const index = parseInt(editBtn.getAttribute('data-index'), 10);
+                if (!Number.isInteger(index) || !situasiItems[index]) return;
+
+                situasiNameInput.value = situasiItems[index].name;
+                situasiEditIndex.value = String(index);
+                situasiModalTitle.textContent = "Edit Situasi";
+                return;
+            }
+
+            const deleteBtn = event.target.closest('.situasi-delete-btn');
+            if (deleteBtn) {
+                const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
+                if (!Number.isInteger(index) || !situasiItems[index]) return;
+
+                situasiItems.splice(index, 1);
+                saveSituasiToStorage();
+                renderSituasiCards();
+            }
+        });
+    }
 
 
     document.querySelectorAll('.edit-dialogue-btn').forEach(btn => {
