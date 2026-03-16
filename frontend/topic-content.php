@@ -120,59 +120,100 @@
             $dialogue = mysqli_query($con, $sql);
         ?>
 
-        <div class="dialogue-container hide" id="dialogueContainer">
-            <div class="p-6 bg-white rounded-lg shadow space-y-6">
+        <div class="dialogue-container hide space-y-6" id="dialogueContainer">
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Situasi 1: My Family / 我的家人</h2>
 
-                <?php while ($row = mysqli_fetch_assoc($dialogue)) { ?>
-
-                    <div class="flex items-start space-x-4">
-                        <!-- Avatar -->
-                        <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">A</div>
+                    <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                        <div class="flex items-center gap-2">
+                            <button type="button" title="Delete Situasi" class="delete-btn">
+                                <span class="material-icons">delete</span>
+                            </button>
+                            <button type="button" title="Edit Situasi" class="edit-btn">
+                                <span class="material-icons">edit</span>
+                            </button>
                         </div>
+                    <?php } ?>
+                </div>
 
-                        <!-- Bubble -->
-                        <div class="relative bg-gray-100 rounded-2xl p-6 w-5/6 text-lg flex flex-col">
-                            <!-- Text -->
-                            <p class="mb-4"><?php echo $row['chinese_text']; ?></p>
+                <div class="space-y-4">
+                    <?php while ($row = mysqli_fetch_assoc($dialogue)) { ?>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-xl font-bold uppercase">
+                                        <?php echo strtoupper(substr($row['character_name'] ?: 'A', 0, 1)); ?>
+                                    </div>
+                                </div>
 
-                            <!-- Button aligned bottom-right -->
-                            <div class="self-end flex">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-lg font-semibold text-gray-900 break-words"><?php echo $row['chinese_text']; ?></p>
+                                    <p class="text-sm text-gray-600 mt-1 break-words"><?php echo $row['pinyin_text']; ?></p>
+                                </div>
 
-                                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                                <div class="flex items-center gap-2">
+                                    <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                                        <button class="delete-btn" type="button" title="Delete" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
+                                            <span class="material-icons">delete</span>
+                                        </button>
 
-                                    <button class="delete-btn mr-3" type="button" title="Delete" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="<?php echo $row['id']; ?>" data-topic-id="<?php echo $row['topic_id']; ?>">
-                                        <span class="material-icons">delete</span>
+                                        <button class="edit-dialogue-btn" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                    <?php } ?>
+
+                                    <button onclick="playAudio('<?php echo $row['audio_path']; ?>')" class="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110" title="Play Audio">
+                                        <span class="material-icons">play_arrow</span>
                                     </button>
-
-                                    <button class="edit-dialogue-btn mr-3" data-id="<?php echo $row['id']; ?>" type="button" title="Edit">
-                                        <span class="material-icons">edit</span>
-                                    </button>
-
-                                <?php } ?>
-
-
-                                <button onclick="playAudio('<?php echo $row['audio_path']; ?>')" 
-                                        class="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-6.518-3.76A1 1 0 007 8.243v7.514a1 1 0 001.234.97l6.518-1.88a1 1 0 00.752-.97v-3.64a1 1 0 00-.752-.97z"/>
-                                    </svg>
-                                </button>
-
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    <?php } ?>
+                </div>
 
+                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                    <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <span class="material-icons">add</span>
+                        Add New Dialogue Line
+                    </button>
                 <?php } ?>
-
             </div>
 
             <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" class="word-btn add-word-btn mt-8" style="border-radius: 22px;">+</button>
+                <button data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal" type="button" class="w-full rounded-2xl bg-red-600 text-white py-4 px-6 font-semibold text-lg shadow hover:bg-red-700 transition flex items-center justify-center gap-2">
+                    <span class="material-icons">add</span>
+                    Add New Situasi
+                </button>
             <?php } ?>
-
         </div>
 
+    </div>
+</div>
+
+
+<div id="new-situasi-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-full max-w-xl max-h-full">
+        <div class="relative bg-white rounded-lg py-5 shadow-sm">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">Situasi Baharu</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="new-situasi-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <div class="px-5 pt-5 pb-2">
+                <label for="new_situasi_name" class="block mb-2 text-sm font-medium text-gray-900">Nama Situasi</label>
+                <input type="text" id="new_situasi_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Contoh: Situasi 2: Di Restoran / 在餐厅">
+                <p class="text-xs text-gray-500 mt-2">UI demo sahaja. Sambungkan butang ini ke backend jika ingin simpan situasi.</p>
+            </div>
+            <div class="px-5 pb-5 pt-2 flex justify-end gap-2">
+                <button type="button" data-modal-hide="new-situasi-modal" class="py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100">Batal</button>
+                <button type="button" data-modal-hide="new-situasi-modal" class="py-2 px-4 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">Simpan</button>
+            </div>
+        </div>
     </div>
 </div>
 
