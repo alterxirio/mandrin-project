@@ -524,6 +524,16 @@
         wordContainer.classList.add("hide");
     });
 
+    const existingDialogues = <?php
+        $existingDialogues = [];
+        if (isset($dialogue) && $dialogue instanceof mysqli_result) {
+            while ($dialogueRow = mysqli_fetch_assoc($dialogue)) {
+                $existingDialogues[] = $dialogueRow;
+            }
+        }
+        echo json_encode($existingDialogues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ?>;
+
     const situasiList = document.getElementById("situasiList");
     const situasiNameInput = document.getElementById("new_situasi_name");
     const situasiEditIndex = document.getElementById("situasi_edit_index");
@@ -532,6 +542,53 @@
     const saveSituasiBtn = document.getElementById("save-situasi-btn");
     const situasiStorageKey = "situasi_topic_<?php echo (int)$_GET['id']; ?>";
     let situasiItems = [];
+
+    function normalizeSituasi(items) {
+        if (!Array.isArray(items)) return [];
+
+        return items.map((item) => {
+            if (typeof item === "string") {
+                return { name: item || "null", dialogues: [] };
+            }
+
+            return {
+                name: (item?.name || "null").trim() || "null",
+                dialogues: Array.isArray(item?.dialogues) ? item.dialogues : []
+            };
+        });
+    }
+
+    function renderDialogueLines(dialogues) {
+        if (!dialogues.length) {
+            return '<p class="text-sm text-gray-500">Tiada dialog lagi.</p>';
+        }
+
+        return dialogues.map((line) => `
+            <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="font-semibold text-gray-900">${line.character_name || "null"}</p>
+                        <p class="text-lg text-gray-800">${line.chinese_text || ""}</p>
+                        <p class="text-sm text-gray-600">${line.pinyin_text || ""}</p>
+                        <p class="text-sm text-gray-500">${line.meaning || ""}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="word-btn !w-auto !h-auto !rounded-lg px-3 py-2" onclick="playAudio('${line.audio_path || ""}')">
+                            <span class="material-icons">volume_up</span>
+                        </button>
+                        <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                            <button type="button" class="edit-btn edit-dialogue-btn" data-id="${line.id}" title="Edit Dialogue">
+                                <span class="material-icons">edit</span>
+                            </button>
+                            <button type="button" class="delete-btn dialogue-delete-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${line.id}" data-topic-id="<?php echo (int)$_GET['id']; ?>" title="Delete Dialogue">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    }
 
     function renderSituasiCards() {
         if (!situasiList) return;
@@ -544,7 +601,7 @@
         situasiList.innerHTML = situasiItems.map((situasi, index) => `
             <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
                 <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">${situasi.name}</h2>
+                    <h2 class="text-xl font-bold text-gray-900">${situasi.name || "null"}</h2>
 
                     <?php if ($_SESSION['role'] == "Pensyarah") { ?>
                         <div class="flex items-center gap-2">
@@ -556,6 +613,10 @@
                             </button>
                         </div>
                     <?php } ?>
+                </div>
+
+                <div class="space-y-3">
+                    ${renderDialogueLines(situasi.dialogues || [])}
                 </div>
 
                 <?php if ($_SESSION['role'] == "Pensyarah") { ?>
@@ -582,11 +643,26 @@
 
     try {
         const storedSituasi = JSON.parse(localStorage.getItem(situasiStorageKey) || "[]");
-        if (Array.isArray(storedSituasi)) {
-            situasiItems = storedSituasi;
-        }
+        situasiItems = normalizeSituasi(storedSituasi);
     } catch (_) {
         situasiItems = [];
+    }
+
+    if (!situasiItems.length) {
+        situasiItems = [{
+            name: "null",
+            dialogues: existingDialogues
+        }];
+    } else {
+        const nullSituasi = situasiItems.find((item) => (item.name || "").toLowerCase() === "null");
+        if (nullSituasi) {
+            nullSituasi.dialogues = existingDialogues;
+        } else {
+            situasiItems.unshift({
+                name: "null",
+                dialogues: existingDialogues
+            });
+        }
     }
 
     renderSituasiCards();
@@ -602,9 +678,9 @@
 
             const editIndex = parseInt(situasiEditIndex.value, 10);
             if (Number.isInteger(editIndex) && editIndex >= 0 && editIndex < situasiItems.length) {
-                situasiItems[editIndex].name = name;
+                situasiItems[editIndex].name = name || "null";
             } else {
-                situasiItems.push({ name });
+                situasiItems.push({ name: name || "null", dialogues: [] });
             }
 
             saveSituasiToStorage();
@@ -629,6 +705,39 @@
                 return;
             }
 
+            const editDialogueBtn = event.target.closest('.edit-dialogue-btn');
+            if (editDialogueBtn) {
+                const dialogueId = editDialogueBtn.dataset.id;
+                fetch(window.location.href, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "ajax_edit_dialogue=1&dialogue_id=" + dialogueId
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("edit_dialogue").value = data.chinese_text;
+                    document.getElementById("edit_pinyinDialogue").value = data.pinyin_text;
+                    document.getElementById("edit_meaningDialogue").value = data.meaning;
+                    document.getElementById("edit_character").value = data.character_name;
+                    document.getElementById("edit_dialogue_id").value = data.id;
+
+                    const modal = new Modal(document.getElementById('edit-dialogue-modal'));
+                    modal.show();
+                });
+                return;
+            }
+
+            const dialogueDeleteBtn = event.target.closest('.dialogue-delete-btn');
+            if (dialogueDeleteBtn) {
+                const userId = dialogueDeleteBtn.getAttribute('data-id');
+                const topicId = dialogueDeleteBtn.getAttribute('data-topic-id');
+                document.getElementById('edit-confirm-delete').setAttribute('data-id', userId);
+                document.getElementById('edit-confirm-delete').setAttribute('data-topic-id', topicId);
+                return;
+            }
+
             const deleteBtn = event.target.closest('.situasi-delete-btn');
             if (deleteBtn) {
                 const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
@@ -640,52 +749,12 @@
             }
         });
     }
-
-
-    document.querySelectorAll('.edit-dialogue-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-
-        let dialogueId = this.dataset.id;
-
-        fetch(window.location.href, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: "ajax_edit_dialogue=1&dialogue_id=" + dialogueId
-        })
-        .then(res => res.json())
-        .then(data => {
-
-            // Fill dialogue edit modal
-            document.getElementById("edit_dialogue").value = data.chinese_text;
-            document.getElementById("edit_pinyinDialogue").value = data.pinyin_text;
-            document.getElementById("edit_meaningDialogue").value = data.meaning;
-            document.getElementById("edit_character").value = data.character_name;
-            document.getElementById("edit_dialogue_id").value = data.id;
-
-            const modal = new Modal(document.getElementById('edit-dialogue-modal'));
-            modal.show();
-        });
-    });
-});
-
 document.querySelectorAll('.dialogue-closeBtn').forEach(btn => {
     btn.addEventListener('click', function () {
 
         // Use Flowbite modal
         const modal = new Modal(document.getElementById('edit-dialogue-modal'));
         modal.hide();
-
-    });
-});
-
-document.querySelectorAll('[data-modal-toggle="edit-delete-modal"]').forEach(button => {
-    button.addEventListener('click', function() {
-        let userId = this.getAttribute('data-id'); // Get user ID
-        let topicId = this.getAttribute('data-topic-id'); // Get user ID
-        document.getElementById('edit-confirm-delete').setAttribute('data-id', userId); // Store in modal
-        document.getElementById('edit-confirm-delete').setAttribute('data-topic-id', topicId); // Store in modal
 
     });
 });
