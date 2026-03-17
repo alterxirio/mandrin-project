@@ -4,14 +4,22 @@
 }
 
 .main {
-    margin: 0% 8%;
+    margin: 2rem auto 3rem;
+    max-width: 1200px;
+    padding: 0 1.25rem;
     position: relative;
 }
 
 .top {
-    margin: 2% 0%;
+    margin: 1.25rem 0 2rem;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+body {
+    background: #f8fafc;
+    color: #0f172a;
 }
 
 /* Vertical Menu */
@@ -164,6 +172,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    width: 100%;
 }
 
 .dialogue-speaker-avatar {
@@ -181,7 +190,8 @@
 }
 
 .dialogue-bubble {
-    background: #e5e7eb;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 14px 18px;
     flex: 1;
@@ -190,6 +200,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+
+.dialogue-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .dialogue-chinese {
@@ -208,6 +224,22 @@
     flex-wrap: nowrap;
     justify-content: flex-end;
     margin-left: auto;
+}
+
+.dialogue-pinyin,
+.dialogue-meaning {
+    margin: 0;
+    line-height: 1.35;
+}
+
+.dialogue-pinyin {
+    font-size: 1.25rem;
+    color: #1f2937;
+}
+
+.dialogue-meaning {
+    font-size: 1.05rem;
+    color: #4b5563;
 }
 
 .dialogue-action-btn {
