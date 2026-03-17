@@ -543,6 +543,18 @@
     const situasiStorageKey = "situasi_topic_<?php echo (int)$_GET['id']; ?>";
     let situasiItems = [];
 
+    function getDialogueContainerName(dialogueLine) {
+        const rawName = dialogueLine?.container_name
+            ?? dialogueLine?.container
+            ?? dialogueLine?.situasi_name
+            ?? null;
+
+        if (typeof rawName !== "string") return "null";
+
+        const normalizedName = rawName.trim();
+        return normalizedName ? normalizedName : "null";
+    }
+
     function normalizeSituasi(items) {
         if (!Array.isArray(items)) return [];
 
@@ -657,22 +669,46 @@
         situasiItems = [];
     }
 
-    if (!situasiItems.length) {
-        situasiItems = [{
-            name: "null",
-            dialogues: existingDialogues
-        }];
-    } else {
-        const nullSituasi = situasiItems.find((item) => (item.name || "").toLowerCase() === "null");
-        if (nullSituasi) {
-            nullSituasi.dialogues = existingDialogues;
-        } else {
-            situasiItems.unshift({
-                name: "null",
-                dialogues: existingDialogues
-            });
+    const dialogueByContainer = existingDialogues.reduce((acc, dialogueLine) => {
+        const containerName = getDialogueContainerName(dialogueLine);
+
+        if (!acc[containerName]) {
+            acc[containerName] = [];
         }
+
+        acc[containerName].push(dialogueLine);
+        return acc;
+    }, {});
+
+    const groupedSituasiItems = Object.entries(dialogueByContainer).map(([name, dialogues]) => ({
+        name,
+        dialogues
+    }));
+
+    if (!groupedSituasiItems.some((item) => (item.name || "").toLowerCase() === "null")) {
+        groupedSituasiItems.unshift({ name: "null", dialogues: [] });
     }
+
+    const storedSituasiNames = situasiItems.map((item) => ((item?.name || "null").trim() || "null"));
+    groupedSituasiItems.forEach((groupedItem) => {
+        const groupedName = ((groupedItem?.name || "null").trim() || "null").toLowerCase();
+        const hasExisting = storedSituasiNames.some((storedName) => storedName.toLowerCase() === groupedName);
+
+        if (!hasExisting) {
+            situasiItems.push({ name: groupedItem.name, dialogues: [] });
+            storedSituasiNames.push(groupedItem.name);
+        }
+    });
+
+    situasiItems = normalizeSituasi(situasiItems).map((item) => {
+        const itemName = ((item?.name || "null").trim() || "null").toLowerCase();
+        const matchedGroup = groupedSituasiItems.find((groupedItem) => ((groupedItem?.name || "null").trim() || "null").toLowerCase() === itemName);
+
+        return {
+            ...item,
+            dialogues: matchedGroup ? matchedGroup.dialogues : []
+        };
+    });
 
     renderSituasiCards();
 
