@@ -600,35 +600,42 @@
             return;
         }
 
-        situasiList.innerHTML = situasiItems.map((situasi, index) => `
-            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
-                <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">${situasi.name || "null"}</h2>
+        situasiList.innerHTML = situasiItems.map((situasi, index) => {
+            const safeName = (situasi.name || "").trim();
+            const isDefaultSituasi = !safeName || safeName.toLowerCase() === "null";
+
+            return `
+                <div class="${isDefaultSituasi ? 'space-y-4' : 'rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6'}">
+                    ${isDefaultSituasi ? '' : `
+                        <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                            <h2 class="text-xl font-bold text-gray-900">${safeName}</h2>
+
+                            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                    <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    `}
+
+                    <div class="space-y-3">
+                        ${renderDialogueLines(situasi.dialogues || [])}
+                    </div>
 
                     <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                        <div class="flex items-center gap-2">
-                            <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
-                                <span class="material-icons">delete</span>
-                            </button>
-                            <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
-                                <span class="material-icons">edit</span>
-                            </button>
-                        </div>
+                        <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                            <span class="material-icons">add</span>
+                            Add New Dialogue Line
+                        </button>
                     <?php } ?>
                 </div>
-
-                <div class="space-y-3">
-                    ${renderDialogueLines(situasi.dialogues || [])}
-                </div>
-
-                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                    <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
-                        <span class="material-icons">add</span>
-                        Add New Dialogue Line
-                    </button>
-                <?php } ?>
-            </div>
-        `).join("");
+            `;
+        }).join("");
     }
 
     function saveSituasiToStorage() {
