@@ -564,23 +564,21 @@
         }
 
         return dialogues.map((line) => `
-            <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <p class="font-semibold text-gray-900">${line.character_name || "null"}</p>
-                        <p class="text-lg text-gray-800">${line.chinese_text || ""}</p>
-                        <p class="text-sm text-gray-600">${line.pinyin_text || ""}</p>
-                        <p class="text-sm text-gray-500">${line.meaning || ""}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="word-btn !w-auto !h-auto !rounded-lg px-3 py-2" onclick="playAudio('${line.audio_path || ""}')">
-                            <span class="material-icons">volume_up</span>
+            <div class="dialogue-line-card">
+                <div class="dialogue-speaker-avatar">${(line.character_name || "A").charAt(0).toUpperCase()}</div>
+
+                <div class="dialogue-bubble">
+                    <p class="dialogue-chinese">${line.chinese_text || ""}</p>
+
+                    <div class="dialogue-actions">
+                        <button type="button" class="dialogue-action-btn dialogue-play-btn" onclick="playAudio('${line.audio_path || ""}')" title="Play Audio">
+                            <span class="material-icons">play_arrow</span>
                         </button>
                         <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                            <button type="button" class="edit-btn edit-dialogue-btn" data-id="${line.id}" title="Edit Dialogue">
+                            <button type="button" class="edit-btn edit-dialogue-btn dialogue-action-btn" data-id="${line.id}" title="Edit Dialogue">
                                 <span class="material-icons">edit</span>
                             </button>
-                            <button type="button" class="delete-btn dialogue-delete-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${line.id}" data-topic-id="<?php echo (int)$_GET['id']; ?>" title="Delete Dialogue">
+                            <button type="button" class="delete-btn dialogue-delete-btn dialogue-action-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${line.id}" data-topic-id="<?php echo (int)$_GET['id']; ?>" title="Delete Dialogue">
                                 <span class="material-icons">delete</span>
                             </button>
                         <?php } ?>
@@ -598,35 +596,42 @@
             return;
         }
 
-        situasiList.innerHTML = situasiItems.map((situasi, index) => `
-            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
-                <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">${situasi.name || "null"}</h2>
+        situasiList.innerHTML = situasiItems.map((situasi, index) => {
+            const safeName = (situasi.name || "").trim();
+            const isDefaultSituasi = !safeName || safeName.toLowerCase() === "null";
+
+            return `
+                <div class="${isDefaultSituasi ? 'space-y-4' : 'rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6'}">
+                    ${isDefaultSituasi ? '' : `
+                        <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                            <h2 class="text-xl font-bold text-gray-900">${safeName}</h2>
+
+                            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                    <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    `}
+
+                    <div class="space-y-3">
+                        ${renderDialogueLines(situasi.dialogues || [])}
+                    </div>
 
                     <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                        <div class="flex items-center gap-2">
-                            <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
-                                <span class="material-icons">delete</span>
-                            </button>
-                            <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
-                                <span class="material-icons">edit</span>
-                            </button>
-                        </div>
+                        <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                            <span class="material-icons">add</span>
+                            Add New Dialogue Line
+                        </button>
                     <?php } ?>
                 </div>
-
-                <div class="space-y-3">
-                    ${renderDialogueLines(situasi.dialogues || [])}
-                </div>
-
-                <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                    <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
-                        <span class="material-icons">add</span>
-                        Add New Dialogue Line
-                    </button>
-                <?php } ?>
-            </div>
-        `).join("");
+            `;
+        }).join("");
     }
 
     function saveSituasiToStorage() {
