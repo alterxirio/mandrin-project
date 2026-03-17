@@ -568,7 +568,11 @@
                 <div class="dialogue-speaker-avatar">${(line.character_name || "A").charAt(0).toUpperCase()}</div>
 
                 <div class="dialogue-bubble">
-                    <p class="dialogue-chinese">${line.chinese_text || ""}</p>
+                    <div class="dialogue-texts">
+                        <p class="dialogue-chinese">${line.chinese_text || ""}</p>
+                        <p class="dialogue-pinyin">${line.pinyin_text || ""}</p>
+                        <p class="dialogue-meaning">${line.meaning || ""}</p>
+                    </div>
 
                     <div class="dialogue-actions">
                         <button type="button" class="dialogue-action-btn dialogue-play-btn" onclick="playAudio('${line.audio_path || ""}')" title="Play Audio">
