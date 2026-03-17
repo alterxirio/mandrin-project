@@ -564,23 +564,25 @@
         }
 
         return dialogues.map((line) => `
-            <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <p class="font-semibold text-gray-900">${line.character_name || "null"}</p>
-                        <p class="text-lg text-gray-800">${line.chinese_text || ""}</p>
-                        <p class="text-sm text-gray-600">${line.pinyin_text || ""}</p>
-                        <p class="text-sm text-gray-500">${line.meaning || ""}</p>
+            <div class="dialogue-line-card">
+                <div class="dialogue-speaker-avatar">${(line.character_name || "A").charAt(0).toUpperCase()}</div>
+
+                <div class="dialogue-bubble">
+                    <div class="dialogue-texts">
+                        <p class="dialogue-chinese">${line.chinese_text || ""}</p>
+                        <p class="dialogue-pinyin">${line.pinyin_text || ""}</p>
+                        <p class="dialogue-meaning">${line.meaning || ""}</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="word-btn !w-auto !h-auto !rounded-lg px-3 py-2" onclick="playAudio('${line.audio_path || ""}')">
-                            <span class="material-icons">volume_up</span>
+
+                    <div class="dialogue-actions">
+                        <button type="button" class="dialogue-action-btn dialogue-play-btn" onclick="playAudio('${line.audio_path || ""}')" title="Play Audio">
+                            <span class="material-icons">play_arrow</span>
                         </button>
                         <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                            <button type="button" class="edit-btn edit-dialogue-btn" data-id="${line.id}" title="Edit Dialogue">
+                            <button type="button" class="edit-btn edit-dialogue-btn dialogue-action-btn" data-id="${line.id}" title="Edit Dialogue">
                                 <span class="material-icons">edit</span>
                             </button>
-                            <button type="button" class="delete-btn dialogue-delete-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${line.id}" data-topic-id="<?php echo (int)$_GET['id']; ?>" title="Delete Dialogue">
+                            <button type="button" class="delete-btn dialogue-delete-btn dialogue-action-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${line.id}" data-topic-id="<?php echo (int)$_GET['id']; ?>" title="Delete Dialogue">
                                 <span class="material-icons">delete</span>
                             </button>
                         <?php } ?>
