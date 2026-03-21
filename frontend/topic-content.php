@@ -686,11 +686,26 @@
             fetch("../backend/topic-content-dialogueBE.php?topik_id=<?php echo (int)$_GET['id']; ?>", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Requested-With": "XMLHttpRequest"
                 },
                 body: formData.toString()
-            }).then(() => {
+            }).then(async (res) => {
+                let payload = null;
+                try {
+                    payload = await res.json();
+                } catch (e) {
+                    payload = null;
+                }
+
+                if (!res.ok || !payload?.success) {
+                    alert(payload?.message || "Gagal simpan situasi. Sila cuba lagi.");
+                    return;
+                }
+
                 window.location.reload();
+            }).catch(() => {
+                alert("Ralat rangkaian semasa simpan situasi.");
             });
         });
     }

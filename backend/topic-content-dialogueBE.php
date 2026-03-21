@@ -99,6 +99,25 @@ function hasScenarioSchema(mysqli $con): bool {
     return $supported;
 }
 
+function isAjaxRequest(): bool {
+    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+}
+
+function respondScenarioResult(bool $success, string $message, int $topicId): void {
+    if (isAjaxRequest()) {
+        header('Content-Type: application/json');
+        http_response_code($success ? 200 : 422);
+        echo json_encode([
+            'success' => $success,
+            'message' => $message
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    header("Location: ../frontend/topic-content.php?id=$topicId");
+    exit;
+}
+
 if (isset($_POST['ajax_scenarios'])) {
     header('Content-Type: application/json');
 
@@ -154,15 +173,30 @@ if (isset($_POST['add_scenario_name'])) {
     $scenarioName = trim($_POST['add_scenario_name']);
     $sortOrder = isset($_POST['add_scenario_sort']) ? (int)$_POST['add_scenario_sort'] : 1;
 
+    if ($scenarioName === '') {
+        respondScenarioResult(false, 'Nama situasi tidak boleh kosong.', $topik_id);
+    }
+
+    if ($topik_id <= 0 || !hasScenarioSchema($con)) {
+        respondScenarioResult(false, 'Skema situasi/dialog tidak tersedia untuk topik ini.', $topik_id);
+    }
+
     if ($scenarioName !== '' && $topik_id > 0 && hasScenarioSchema($con)) {
         $stmt = $con->prepare("INSERT INTO dialogue_scenarios (topic_id, scenario_name, sort_order) VALUES (?, ?, ?)");
         $stmt->bind_param("isi", $topik_id, $scenarioName, $sortOrder);
-        $stmt->execute();
+        $ok = $stmt->execute();
+        $errorNo = $con->errno;
         $stmt->close();
+
+        if (!$ok) {
+            if ($errorNo === 1062) {
+                respondScenarioResult(false, 'Nama situasi sudah wujud untuk topik ini.', $topik_id);
+            }
+            respondScenarioResult(false, 'Gagal simpan situasi. Sila cuba lagi.', $topik_id);
+        }
     }
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
-    exit;
+    respondScenarioResult(true, 'Situasi berjaya disimpan.', $topik_id);
 }
 
 if (isset($_POST['edit_scenario_id']) && isset($_POST['edit_scenario_name'])) {
@@ -170,15 +204,30 @@ if (isset($_POST['edit_scenario_id']) && isset($_POST['edit_scenario_name'])) {
     $scenarioName = trim($_POST['edit_scenario_name']);
     $sortOrder = isset($_POST['edit_scenario_sort']) ? (int)$_POST['edit_scenario_sort'] : 1;
 
+    if ($scenarioName === '' || $scenarioId <= 0) {
+        respondScenarioResult(false, 'Maklumat situasi tidak sah.', $topik_id);
+    }
+
+    if ($topik_id <= 0 || !hasScenarioSchema($con)) {
+        respondScenarioResult(false, 'Skema situasi/dialog tidak tersedia untuk topik ini.', $topik_id);
+    }
+
     if ($scenarioId > 0 && $scenarioName !== '' && hasScenarioSchema($con)) {
         $stmt = $con->prepare("UPDATE dialogue_scenarios SET scenario_name = ?, sort_order = ? WHERE id = ? AND topic_id = ?");
         $stmt->bind_param("siii", $scenarioName, $sortOrder, $scenarioId, $topik_id);
-        $stmt->execute();
+        $ok = $stmt->execute();
+        $errorNo = $con->errno;
         $stmt->close();
+
+        if (!$ok) {
+            if ($errorNo === 1062) {
+                respondScenarioResult(false, 'Nama situasi sudah wujud untuk topik ini.', $topik_id);
+            }
+            respondScenarioResult(false, 'Gagal kemas kini situasi. Sila cuba lagi.', $topik_id);
+        }
     }
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
-    exit;
+    respondScenarioResult(true, 'Situasi berjaya dikemas kini.', $topik_id);
 }
 
 if (isset($_GET['delete-scenario-id'])) {
