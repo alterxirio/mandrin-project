@@ -605,6 +605,7 @@
     }
 
     function renderSituasiCards() {
+        
         if (!situasiList) return;
 
         if (!situasiItems.length) {

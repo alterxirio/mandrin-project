@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 05, 2026 at 05:11 PM
+-- Generation Time: Mar 21, 2026 at 04:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,10 +39,10 @@ CREATE TABLE `class_students` (
 --
 
 INSERT INTO `class_students` (`id`, `class`, `student_id`, `created_at`) VALUES
-(1, '2A', 2, '2026-03-04 20:00:00'),
-(2, '2A', 3, '2026-03-04 20:00:00'),
-(3, '2A', 5, '2026-03-04 20:00:00'),
-(4, '2B', 6, '2026-03-04 20:00:00');
+(5, '2 DVM HSK 2026', 6, '2026-03-11 04:00:34'),
+(8, '2 DVM HSK 2026', 3, '2026-03-11 04:02:26'),
+(9, '2 DVM KPD 2026', 5, '2026-03-11 15:26:27'),
+(10, '2 DVM KPD 2026', 2, '2026-03-11 15:48:59');
 
 -- --------------------------------------------------------
 
@@ -67,10 +67,8 @@ CREATE TABLE `dialogues` (
 INSERT INTO `dialogues` (`id`, `topic_id`, `chinese_text`, `pinyin_text`, `meaning`, `character_name`, `audio_path`) VALUES
 (1, 1, '你好！', 'nǐ hǎo', 'Hello!', 'A', ''),
 (2, 1, '你好吗？', 'nǐ hǎo ma', 'Apa khabar?', 'B', ''),
-(3, 1, '我很好。', 'wǒ hěn hǎo', 'Saya baik.', 'A', ''),
 (4, 3, '你喜欢吃什么？', 'nǐ xǐ huān chī shén me', 'Awak suka makan apa?', 'A', ''),
 (5, 3, '我喜欢吃米饭。', 'wǒ xǐ huān chī mǐ fàn', 'Saya suka makan nasi.', 'B', ''),
-(7, 2, '你好！你好吗 小猫在森林里跳舞，风吹过河面，带来花香。 风吹过河面，', 'bla bla ', 'ha hasdaasdasd', 'PC', '../media/audio/dialogue/dialogue-2/1.mp3'),
 (8, 4, '风吹过河面，带来花香', 'bla bla ', 'ha hasdaasdasd', 'PH', '../media/audio/dialogue/dialogue-4/1.mp3');
 
 -- --------------------------------------------------------
@@ -110,7 +108,8 @@ INSERT INTO `homework` (`id`, `title`, `description`, `class`, `due_date`, `crea
 (43, ' Bab 13', NULL, '2A', '2026-04-02', '2026-03-05 06:37:11'),
 (44, 'Latihan Bab 13', NULL, '2A', '2026-03-06', '2026-03-05 14:33:22'),
 (46, 'Latihan penguasaan Bahasa Mandrin', NULL, '2A', '0555-05-05', '2026-03-05 15:28:37'),
-(47, 'hello', NULL, '2A', '6666-06-06', '2026-03-05 15:35:48');
+(47, 'hello', NULL, '2A', '6666-06-06', '2026-03-05 15:35:48'),
+(48, 'Latihan Pengukuhan', NULL, '2 DVM KPD 2026', '2026-03-20', '2026-03-11 15:23:12');
 
 -- --------------------------------------------------------
 
@@ -167,7 +166,9 @@ INSERT INTO `questions` (`id`, `homework_id`, `type`, `question_text`, `user_ans
 (143, 47, 'listening', 'dengar audio dan pilih gambar yang betul', '', NULL, NULL, NULL, NULL, 'hello,hi', 'hello', 'media/homework/audio/hw_69a9a2d4bd0ef8.36477631.mp3', 'media/homework/images/hw_69a9a2d4ba8a34.66444480.png,media/homework/images/hw_69a9a2d4bb28c9.11406382.jpg'),
 (144, 47, 'picture', 'padankan dengar perkataan yang betul', '', NULL, NULL, NULL, NULL, NULL, 'ni hao,hi,hello', NULL, 'media/homework/images/hw_69a9a2d4be0248.77715368.jpg,media/homework/images/hw_69a9a2d4be7f24.45719144.jpg,media/homework/images/hw_69a9a2d4bef973.76233328.png'),
 (145, 47, 'mcq', 'pilih satu', '', 'hi', 'hello', 'bye', '', NULL, 'bye', NULL, NULL),
-(146, 47, 'truefalse', 'siapa saya', '', NULL, NULL, NULL, NULL, NULL, 'true', NULL, 'media/homework/images/hw_69a9a2d4bfd771.38636335.png');
+(146, 47, 'truefalse', 'siapa saya', '', NULL, NULL, NULL, NULL, NULL, 'true', NULL, 'media/homework/images/hw_69a9a2d4bfd771.38636335.png'),
+(147, 48, 'listening', 'hello', '', NULL, NULL, NULL, NULL, 'qr,kad', 'kad', 'media/homework/audio/hw_69b188e02ae2b9.10653832.mp3', 'media/homework/images/hw_69b188e028de84.94811351.jpg,media/homework/images/hw_69b188e02a4ed1.85258315.png'),
+(148, 48, 'picture', 'padankan dengar perkataan yang betul', '', NULL, NULL, NULL, NULL, NULL, 'qr,raya,nefer 1', NULL, 'media/homework/images/hw_69b188e02c15d2.11927905.jpg,media/homework/images/hw_69b188e02cb418.61881564.png,media/homework/images/hw_69b188e02d61f6.29908054.jpg');
 
 -- --------------------------------------------------------
 
@@ -206,7 +207,11 @@ INSERT INTO `student_homework_answers` (`id`, `submission_id`, `question_id`, `a
 (30, 21, 143, 'hi', '2026-03-05 15:39:10'),
 (31, 21, 144, 'hello,ni hao,hi', '2026-03-05 15:39:10'),
 (32, 21, 145, 'bye', '2026-03-05 15:39:10'),
-(33, 21, 146, 'false', '2026-03-05 15:39:10');
+(33, 21, 146, 'false', '2026-03-05 15:39:10'),
+(34, 22, 147, 'kad', '2026-03-11 15:36:29'),
+(35, 22, 148, 'qr,raya,nefer 1', '2026-03-11 15:36:29'),
+(36, 23, 147, 'qr', '2026-03-11 15:50:07'),
+(37, 23, 148, 'qr,raya,nefer 1', '2026-03-11 15:50:07');
 
 -- --------------------------------------------------------
 
@@ -243,7 +248,9 @@ INSERT INTO `student_homework_submissions` (`id`, `homework_id`, `student_id`, `
 (18, 43, 3, 'submitted', '2026-03-05 22:22:34', '2026-03-05 14:22:34', '2026-03-05 14:22:34', 1, 0),
 (19, 44, 3, 'submitted', '2026-03-05 22:50:54', '2026-03-05 14:50:54', '2026-03-05 14:50:54', 1, 0),
 (20, 44, 5, 'submitted', '2026-03-05 22:54:53', '2026-03-05 14:54:53', '2026-03-05 14:54:53', 0, 1),
-(21, 47, 5, 'submitted', '2026-03-05 23:39:10', '2026-03-05 15:39:10', '2026-03-05 15:39:10', 2, 3);
+(21, 47, 5, 'submitted', '2026-03-05 23:39:10', '2026-03-05 15:39:10', '2026-03-05 15:39:10', 2, 3),
+(22, 48, 5, 'submitted', '2026-03-11 23:36:29', '2026-03-11 15:36:29', '2026-03-11 15:36:29', 2, 0),
+(23, 48, 2, 'submitted', '2026-03-11 23:50:07', '2026-03-11 15:50:07', '2026-03-11 15:50:07', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -268,7 +275,8 @@ INSERT INTO `topics` (`id`, `topik`, `topic_name`, `chinese_character`, `pinyin`
 (1, 1, 'Salam', '你好', 'nǐ hǎo', '../media/graphic/Banner - 1.png'),
 (2, 2, 'Nombor', '数字', 'shù zì', '../media/graphic/Banner - 2.png'),
 (3, 3, 'Makanan', '食物', 'shí wù', '../media/graphic/Banner - 3.png'),
-(4, 4, 'Topik - 2', 'bla', 'bla', '../media/graphic/Banner - 4.png');
+(4, 4, 'Topik - 2', 'bla', 'bla', '../media/graphic/Banner - 4.png'),
+(6, 5, 'Topik - 10', 'bla', 'haha', '../media/graphic/Banner - 5.png');
 
 -- --------------------------------------------------------
 
@@ -403,7 +411,7 @@ ALTER TABLE `words`
 -- AUTO_INCREMENT for table `class_students`
 --
 ALTER TABLE `class_students`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `dialogues`
@@ -415,31 +423,31 @@ ALTER TABLE `dialogues`
 -- AUTO_INCREMENT for table `homework`
 --
 ALTER TABLE `homework`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `questions`
 --
 ALTER TABLE `questions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=147;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
 
 --
 -- AUTO_INCREMENT for table `student_homework_answers`
 --
 ALTER TABLE `student_homework_answers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `student_homework_submissions`
 --
 ALTER TABLE `student_homework_submissions`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `topics`
 --
 ALTER TABLE `topics`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`
