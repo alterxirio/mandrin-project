@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 21, 2026 at 04:05 PM
+-- Generation Time: Mar 21, 2026 at 05:20 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -53,6 +53,8 @@ INSERT INTO `class_students` (`id`, `class`, `student_id`, `created_at`) VALUES
 CREATE TABLE `dialogues` (
   `id` int(10) UNSIGNED NOT NULL,
   `topic_id` int(10) UNSIGNED NOT NULL,
+  `scenario_id` int(10) UNSIGNED NOT NULL,
+  `line_no` int(10) UNSIGNED NOT NULL,
   `chinese_text` text NOT NULL,
   `pinyin_text` text NOT NULL,
   `meaning` text NOT NULL,
@@ -64,12 +66,35 @@ CREATE TABLE `dialogues` (
 -- Dumping data for table `dialogues`
 --
 
-INSERT INTO `dialogues` (`id`, `topic_id`, `chinese_text`, `pinyin_text`, `meaning`, `character_name`, `audio_path`) VALUES
-(1, 1, '你好！', 'nǐ hǎo', 'Hello!', 'A', ''),
-(2, 1, '你好吗？', 'nǐ hǎo ma', 'Apa khabar?', 'B', ''),
-(4, 3, '你喜欢吃什么？', 'nǐ xǐ huān chī shén me', 'Awak suka makan apa?', 'A', ''),
-(5, 3, '我喜欢吃米饭。', 'wǒ xǐ huān chī mǐ fàn', 'Saya suka makan nasi.', 'B', ''),
-(8, 4, '风吹过河面，带来花香', 'bla bla ', 'ha hasdaasdasd', 'PH', '../media/audio/dialogue/dialogue-4/1.mp3');
+INSERT INTO `dialogues` (`id`, `topic_id`, `scenario_id`, `line_no`, `chinese_text`, `pinyin_text`, `meaning`, `character_name`, `audio_path`) VALUES
+(1, 1, 1, 1, '你好！', 'nǐ hǎo', 'Hello!', 'A', ''),
+(2, 1, 1, 2, '你好吗？', 'nǐ hǎo ma', 'Apa khabar?', 'B', ''),
+(4, 3, 2, 1, '你喜欢吃什么？', 'nǐ xǐ huān chī shén me', 'Awak suka makan apa?', 'A', ''),
+(5, 3, 2, 2, '我喜欢吃米饭。', 'wǒ xǐ huān chī mǐ fàn', 'Saya suka makan nasi.', 'B', ''),
+(8, 4, 3, 1, '风吹过河面，带来花香', 'bla bla ', 'ha hasdaasdasd', 'PH', '../media/audio/dialogue/dialogue-4/1.mp3');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `dialogue_scenarios`
+--
+
+CREATE TABLE `dialogue_scenarios` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `topic_id` int(10) UNSIGNED NOT NULL,
+  `scenario_name` varchar(200) NOT NULL,
+  `sort_order` int(10) UNSIGNED NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `dialogue_scenarios`
+--
+
+INSERT INTO `dialogue_scenarios` (`id`, `topic_id`, `scenario_name`, `sort_order`, `created_at`) VALUES
+(1, 1, 'Scenario 1', 1, '2026-03-21 15:41:44'),
+(2, 3, 'Scenario 1', 1, '2026-03-21 15:41:44'),
+(3, 4, 'Scenario 1', 1, '2026-03-21 15:41:44');
 
 -- --------------------------------------------------------
 
@@ -351,7 +376,17 @@ ALTER TABLE `class_students`
 --
 ALTER TABLE `dialogues`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_dialogues_topic_id` (`topic_id`);
+  ADD UNIQUE KEY `uq_dialogues_scenario_line` (`scenario_id`,`line_no`),
+  ADD KEY `idx_dialogues_topic_id` (`topic_id`),
+  ADD KEY `idx_dialogues_scenario_id` (`scenario_id`);
+
+--
+-- Indexes for table `dialogue_scenarios`
+--
+ALTER TABLE `dialogue_scenarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_dialogue_scenarios_topic_name` (`topic_id`,`scenario_name`),
+  ADD KEY `idx_dialogue_scenarios_topic_id` (`topic_id`);
 
 --
 -- Indexes for table `homework`
@@ -420,6 +455,12 @@ ALTER TABLE `dialogues`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT for table `dialogue_scenarios`
+--
+ALTER TABLE `dialogue_scenarios`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `homework`
 --
 ALTER TABLE `homework`
@@ -475,27 +516,13 @@ ALTER TABLE `class_students`
 -- Constraints for table `dialogues`
 --
 ALTER TABLE `dialogues`
-  ADD CONSTRAINT `fk_dialogues_topic` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_dialogues_scenario` FOREIGN KEY (`scenario_id`) REFERENCES `dialogue_scenarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `student_homework_answers`
+-- Constraints for table `dialogue_scenarios`
 --
-ALTER TABLE `student_homework_answers`
-  ADD CONSTRAINT `fk_answer_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_answer_submission` FOREIGN KEY (`submission_id`) REFERENCES `student_homework_submissions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `student_homework_submissions`
---
-ALTER TABLE `student_homework_submissions`
-  ADD CONSTRAINT `fk_submission_homework` FOREIGN KEY (`homework_id`) REFERENCES `homework` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_submission_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `words`
---
-ALTER TABLE `words`
-  ADD CONSTRAINT `fk_words_topic` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `dialogue_scenarios`
+  ADD CONSTRAINT `fk_dialogue_scenarios_topic` FOREIGN KEY (`topic_id`) REFERENCES `topics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
