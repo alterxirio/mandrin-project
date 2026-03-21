@@ -73,7 +73,7 @@
         </div>
 
         <?php
-        $topik_id = $_GET['id'];
+        $topik_id = (int)$_GET['id'];
         $sql = "SELECT * FROM words WHERE topic_id = $topik_id";
         $result = mysqli_query($con, $sql);
         ?>
@@ -683,7 +683,7 @@
                 formData.append("add_scenario_sort", String(situasiItems.length + 1));
             }
 
-            fetch("../backend/topic-content-dialogueBE.php?topik_id=<?php echo (int)$_GET['id']; ?>", {
+            fetch("../backend/topic-content-dialogueBE.php?topik_id=<?php echo $_GET['id']; ?>", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",

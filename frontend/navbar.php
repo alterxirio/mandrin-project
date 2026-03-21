@@ -46,7 +46,7 @@
               <ul class="p-2 text-sm font-medium">
                 <?php if ($result): ?>
                   <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <li><a href="../frontend/topic-content.php?id='<?php echo $row['id']?>'" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
+                    <li><a href="../frontend/topic-content.php?id=<?php echo $row['id']?>" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
                   <?php } ?>
                 <?php else: ?>
                   <li><span class="inline-flex items-center w-full p-2 rounded text-white/80">Tiada topik</span></li>

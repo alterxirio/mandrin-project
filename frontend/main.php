@@ -300,7 +300,7 @@
     document.querySelectorAll('.topic-content').forEach(button => {
         button.addEventListener('click', function() {
             let userId = this.getAttribute('data-id');
-            window.location.href = '../frontend/topic-content.php?id=' + userId;
+            window.location.href = '../frontend/topic-content.php?id='+ userId;
         });
     });
 
