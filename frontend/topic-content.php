@@ -115,9 +115,25 @@
         </div>
 
         <?php
-            $topik_id = $_GET['id'];
-            $sql = "SELECT * FROM dialogues WHERE topic_id = $topik_id";
-            $dialogue = mysqli_query($con, $sql);
+            $topik_id = (int)$_GET['id'];
+
+            $scenarioRows = [];
+            $scenarioSql = "SELECT id, scenario_name, sort_order FROM dialogue_scenarios WHERE topic_id = $topik_id ORDER BY sort_order ASC, id ASC";
+            $scenarioQuery = mysqli_query($con, $scenarioSql);
+            if ($scenarioQuery instanceof mysqli_result) {
+                while ($scenarioRow = mysqli_fetch_assoc($scenarioQuery)) {
+                    $scenarioRows[] = $scenarioRow;
+                }
+            }
+
+            $dialogueRows = [];
+            $dialogueSql = "SELECT * FROM dialogues WHERE topic_id = $topik_id ORDER BY scenario_id ASC, line_no ASC, id ASC";
+            $dialogueQuery = mysqli_query($con, $dialogueSql);
+            if ($dialogueQuery instanceof mysqli_result) {
+                while ($dialogueRow = mysqli_fetch_assoc($dialogueQuery)) {
+                    $dialogueRows[] = $dialogueRow;
+                }
+            }
         ?>
 
         <div class="dialogue-container hide space-y-6" id="dialogueContainer">
@@ -150,7 +166,6 @@
                 <label for="new_situasi_name" class="block mb-2 text-sm font-medium text-gray-900">Nama Situasi</label>
                 <input type="text" id="new_situasi_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Contoh: Situasi 2: Di Restoran / 在餐厅">
                 <input type="hidden" id="situasi_edit_index" value="-1">
-                <p class="text-xs text-gray-500 mt-2">UI demo sahaja. Sambungkan butang ini ke backend jika ingin simpan situasi.</p>
             </div>
             <div class="px-5 pb-5 pt-2 flex justify-end gap-2">
                 <button type="button" data-modal-hide="new-situasi-modal" class="py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100">Batal</button>
@@ -307,6 +322,7 @@
             <section>
                 <div class="py- px- mx-auto w-3/4 lg:py-13">
                     <form action="../backend/topic-content-dialogueBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="scenario_id" id="add_dialogue_scenario_id">
 
                         <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                             <div class="sm:col-span-2">
@@ -368,6 +384,7 @@
                     <form action="../backend/topic-content-dialogueBE.php?topik_id=<?php echo $_GET['id'] ?>" method="post" enctype="multipart/form-data">
 
                      <input type="hidden" name="edit_dialogue_id" id="edit_dialogue_id">
+                     <input type="hidden" name="edit_scenario_id" id="edit_scenario_id">
 
                         <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
                             <div class="sm:col-span-2">
@@ -524,15 +541,8 @@
         wordContainer.classList.add("hide");
     });
 
-    const existingDialogues = <?php
-        $existingDialogues = [];
-        if (isset($dialogue) && $dialogue instanceof mysqli_result) {
-            while ($dialogueRow = mysqli_fetch_assoc($dialogue)) {
-                $existingDialogues[] = $dialogueRow;
-            }
-        }
-        echo json_encode($existingDialogues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    ?>;
+    const existingScenarios = <?php echo json_encode($scenarioRows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    const existingDialogues = <?php echo json_encode($dialogueRows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
     const situasiList = document.getElementById("situasiList");
     const situasiNameInput = document.getElementById("new_situasi_name");
@@ -540,35 +550,9 @@
     const situasiModalTitle = document.getElementById("situasi-modal-title");
     const openSituasiModalBtn = document.getElementById("open-situasi-modal-btn");
     const saveSituasiBtn = document.getElementById("save-situasi-btn");
-    const situasiStorageKey = "situasi_topic_<?php echo (int)$_GET['id']; ?>";
+    const addDialogueScenarioInput = document.getElementById("add_dialogue_scenario_id");
+    const editScenarioInput = document.getElementById("edit_scenario_id");
     let situasiItems = [];
-
-    function getDialogueContainerName(dialogueLine) {
-        const rawName = dialogueLine?.container_name
-            ?? dialogueLine?.container
-            ?? dialogueLine?.situasi_name
-            ?? null;
-
-        if (typeof rawName !== "string") return "null";
-
-        const normalizedName = rawName.trim();
-        return normalizedName ? normalizedName : "null";
-    }
-
-    function normalizeSituasi(items) {
-        if (!Array.isArray(items)) return [];
-
-        return items.map((item) => {
-            if (typeof item === "string") {
-                return { name: item || "null", dialogues: [] };
-            }
-
-            return {
-                name: (item?.name || "null").trim() || "null",
-                dialogues: Array.isArray(item?.dialogues) ? item.dialogues : []
-            };
-        });
-    }
 
     function renderDialogueLines(dialogues) {
         if (!dialogues.length) {
@@ -608,40 +592,38 @@
         
         if (!situasiList) return;
 
-        if (!situasiItems.length) {
-            situasiList.innerHTML = "";
+        if (!Array.isArray(situasiItems) || !situasiItems.length) {
+            situasiList.innerHTML = '<p class="text-sm text-gray-500">Belum ada situasi lagi. Sila tambah situasi baharu.</p>';
             return;
         }
 
-        situasiList.innerHTML = situasiItems.map((situasi, index) => {
-            const safeName = (situasi.name || "").trim();
-            const isDefaultSituasi = !safeName || safeName.toLowerCase() === "null";
+        situasiList.innerHTML = situasiItems.map((situasi) => {
+            const safeName = (situasi.name || "").trim() || `Situasi ${situasi.id}`;
+            const scenarioId = Number(situasi.id) || 0;
 
             return `
-                <div class="${isDefaultSituasi ? 'space-y-4' : 'rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6'}">
-                    ${isDefaultSituasi ? '' : `
-                        <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                            <h2 class="text-xl font-bold text-gray-900">${safeName}</h2>
+                <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+                    <div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                        <h2 class="text-xl font-bold text-gray-900">${safeName}</h2>
 
-                            <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-index="${index}">
-                                        <span class="material-icons">delete</span>
-                                    </button>
-                                    <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-index="${index}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
-                                        <span class="material-icons">edit</span>
-                                    </button>
-                                </div>
-                            <?php } ?>
-                        </div>
-                    `}
+                        <?php if ($_SESSION['role'] == "Pensyarah") { ?>
+                            <div class="flex items-center gap-2">
+                                <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-id="${scenarioId}">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                                <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-id="${scenarioId}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                            </div>
+                        <?php } ?>
+                    </div>
 
                     <div class="space-y-3">
                         ${renderDialogueLines(situasi.dialogues || [])}
                     </div>
 
                     <?php if ($_SESSION['role'] == "Pensyarah") { ?>
-                        <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" type="button" class="w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <button data-modal-target="new-dialogue-modal" data-modal-toggle="new-dialogue-modal" data-scenario-id="${scenarioId}" type="button" class="open-new-dialogue-btn w-full rounded-xl border-2 border-dashed border-gray-300 bg-white py-4 px-4 text-gray-700 font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2">
                             <span class="material-icons">add</span>
                             Add New Dialogue Line
                         </button>
@@ -651,10 +633,6 @@
         }).join("");
     }
 
-    function saveSituasiToStorage() {
-        localStorage.setItem(situasiStorageKey, JSON.stringify(situasiItems));
-    }
-
     function resetSituasiModal() {
         if (!situasiNameInput || !situasiEditIndex || !situasiModalTitle) return;
 
@@ -662,52 +640,22 @@
         situasiEditIndex.value = "-1";
         situasiModalTitle.textContent = "Tambah Situasi Baharu";
     }
-
-    try {
-        const storedSituasi = JSON.parse(localStorage.getItem(situasiStorageKey) || "[]");
-        situasiItems = normalizeSituasi(storedSituasi);
-    } catch (_) {
-        situasiItems = [];
-    }
-
-    const dialogueByContainer = existingDialogues.reduce((acc, dialogueLine) => {
-        const containerName = getDialogueContainerName(dialogueLine);
-
-        if (!acc[containerName]) {
-            acc[containerName] = [];
+    const dialogueByScenario = existingDialogues.reduce((acc, dialogueLine) => {
+        const scenarioId = Number(dialogueLine?.scenario_id) || 0;
+        if (!acc[scenarioId]) {
+            acc[scenarioId] = [];
         }
-
-        acc[containerName].push(dialogueLine);
+        acc[scenarioId].push(dialogueLine);
         return acc;
     }, {});
 
-    const groupedSituasiItems = Object.entries(dialogueByContainer).map(([name, dialogues]) => ({
-        name,
-        dialogues
-    }));
-
-    if (!groupedSituasiItems.some((item) => (item.name || "").toLowerCase() === "null")) {
-        groupedSituasiItems.unshift({ name: "null", dialogues: [] });
-    }
-
-    const storedSituasiNames = situasiItems.map((item) => ((item?.name || "null").trim() || "null"));
-    groupedSituasiItems.forEach((groupedItem) => {
-        const groupedName = ((groupedItem?.name || "null").trim() || "null").toLowerCase();
-        const hasExisting = storedSituasiNames.some((storedName) => storedName.toLowerCase() === groupedName);
-
-        if (!hasExisting) {
-            situasiItems.push({ name: groupedItem.name, dialogues: [] });
-            storedSituasiNames.push(groupedItem.name);
-        }
-    });
-
-    situasiItems = normalizeSituasi(situasiItems).map((item) => {
-        const itemName = ((item?.name || "null").trim() || "null").toLowerCase();
-        const matchedGroup = groupedSituasiItems.find((groupedItem) => ((groupedItem?.name || "null").trim() || "null").toLowerCase() === itemName);
-
+    situasiItems = existingScenarios.map((scenario) => {
+        const scenarioId = Number(scenario?.id) || 0;
         return {
-            ...item,
-            dialogues: matchedGroup ? matchedGroup.dialogues : []
+            id: scenarioId,
+            name: (scenario?.scenario_name || "").trim(),
+            sortOrder: Number(scenario?.sort_order) || 1,
+            dialogues: dialogueByScenario[scenarioId] || []
         };
     });
 
@@ -722,19 +670,28 @@
             const name = (situasiNameInput.value || "").trim();
             if (!name) return;
 
-            const editIndex = parseInt(situasiEditIndex.value, 10);
-            if (Number.isInteger(editIndex) && editIndex >= 0 && editIndex < situasiItems.length) {
-                situasiItems[editIndex].name = name || "null";
+            const editScenarioId = parseInt(situasiEditIndex.value, 10);
+            const formData = new URLSearchParams();
+
+            if (Number.isInteger(editScenarioId) && editScenarioId > 0) {
+                const matchedScenario = situasiItems.find((item) => Number(item.id) === editScenarioId);
+                formData.append("edit_scenario_id", String(editScenarioId));
+                formData.append("edit_scenario_name", name);
+                formData.append("edit_scenario_sort", String(matchedScenario?.sortOrder || 1));
             } else {
-                situasiItems.push({ name: name || "null", dialogues: [] });
+                formData.append("add_scenario_name", name);
+                formData.append("add_scenario_sort", String(situasiItems.length + 1));
             }
 
-            saveSituasiToStorage();
-            renderSituasiCards();
-
-            const modal = new Modal(document.getElementById('new-situasi-modal'));
-            modal.hide();
-            resetSituasiModal();
+            fetch("../backend/topic-content-dialogueBE.php?topik_id=<?php echo (int)$_GET['id']; ?>", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString()
+            }).then(() => {
+                window.location.reload();
+            });
         });
     }
 
@@ -742,12 +699,22 @@
         situasiList.addEventListener("click", function (event) {
             const editBtn = event.target.closest('.situasi-edit-btn');
             if (editBtn) {
-                const index = parseInt(editBtn.getAttribute('data-index'), 10);
-                if (!Number.isInteger(index) || !situasiItems[index]) return;
+                const scenarioId = parseInt(editBtn.getAttribute('data-id'), 10);
+                if (!Number.isInteger(scenarioId) || scenarioId <= 0) return;
+                const matchedScenario = situasiItems.find((item) => Number(item.id) === scenarioId);
 
-                situasiNameInput.value = situasiItems[index].name;
-                situasiEditIndex.value = String(index);
+                situasiNameInput.value = matchedScenario?.name || "";
+                situasiEditIndex.value = String(scenarioId);
                 situasiModalTitle.textContent = "Edit Situasi";
+                return;
+            }
+
+            const openNewDialogueBtn = event.target.closest('.open-new-dialogue-btn');
+            if (openNewDialogueBtn) {
+                const scenarioId = parseInt(openNewDialogueBtn.getAttribute('data-scenario-id'), 10);
+                if (addDialogueScenarioInput && Number.isInteger(scenarioId) && scenarioId > 0) {
+                    addDialogueScenarioInput.value = String(scenarioId);
+                }
                 return;
             }
 
@@ -768,6 +735,9 @@
                     document.getElementById("edit_meaningDialogue").value = data.meaning;
                     document.getElementById("edit_character").value = data.character_name;
                     document.getElementById("edit_dialogue_id").value = data.id;
+                    if (editScenarioInput) {
+                        editScenarioInput.value = data.scenario_id || "";
+                    }
 
                     const modal = new Modal(document.getElementById('edit-dialogue-modal'));
                     modal.show();
@@ -786,12 +756,9 @@
 
             const deleteBtn = event.target.closest('.situasi-delete-btn');
             if (deleteBtn) {
-                const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
-                if (!Number.isInteger(index) || !situasiItems[index]) return;
-
-                situasiItems.splice(index, 1);
-                saveSituasiToStorage();
-                renderSituasiCards();
+                const scenarioId = parseInt(deleteBtn.getAttribute('data-id'), 10);
+                if (!Number.isInteger(scenarioId) || scenarioId <= 0) return;
+                window.location.href = '../backend/topic-content-dialogueBE.php?delete-scenario-id=' + scenarioId + '&topik_id=<?php echo (int)$_GET['id']; ?>';
             }
         });
     }
