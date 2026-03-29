@@ -209,8 +209,7 @@ body {
 }
 
 .dialogue-chinese {
-    font-size: 1.85rem;
-    font-weight: 600;
+    font-size: 1rem;
     color: #0f172a;
     line-height: 1.2;
     margin: 0;
@@ -233,12 +232,11 @@ body {
 }
 
 .dialogue-pinyin {
-    font-size: 1.25rem;
+    font-size: 0.9rem;
     color: #1f2937;
 }
 
 .dialogue-meaning {
-    font-size: 1.05rem;
     color: #4b5563;
 }
 
@@ -292,4 +290,17 @@ body {
         width: 34px;
         height: 34px;
     }
+
+    .dialogue-chinese {
+        font-size: 0.9rem;
+        color: #0f172a;
+        line-height: 1.2;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .dialogue-pinyin {
+        font-size: 0.8rem;
+        color: #1f2937;
+    }   
 }
