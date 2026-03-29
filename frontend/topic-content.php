@@ -558,6 +558,46 @@
     const editScenarioInput = document.getElementById("edit_scenario_id");
     let situasiItems = [];
 
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => {
+            const entities = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return entities[char] || char;
+        });
+    }
+
+    function renderMandarinPinyinCells(chineseText, pinyinText) {
+        const chineseTokens = Array.from(String(chineseText || "").replace(/\s+/g, ""))
+            .filter((token) => token.trim().length > 0);
+        const pinyinTokens = String(pinyinText || "").trim()
+            ? String(pinyinText).trim().split(/\s+/u).filter(Boolean)
+            : [];
+
+        const totalCells = Math.max(chineseTokens.length, pinyinTokens.length);
+        if (!totalCells) {
+            return '<p class="text-sm text-gray-500">Tiada kandungan dialog.</p>';
+        }
+
+        return `<div class="dialogue-word-grid">${
+            Array.from({ length: totalCells }, (_, index) => {
+                const chineseWord = escapeHtml(chineseTokens[index] || "");
+                const pinyinWord = escapeHtml(pinyinTokens[index] || "");
+
+                return `
+                    <div class="dialogue-word-cell">
+                        <span class="dialogue-word-top">${chineseWord}</span>
+                        <span class="dialogue-word-bottom">${pinyinWord}</span>
+                    </div>
+                `;
+            }).join("")
+        }</div>`;
+    }
+
     function renderDialogueLines(dialogues) {
         if (!dialogues.length) {
             return '<p class="text-sm text-gray-500">Tiada dialog lagi.</p>';
@@ -569,8 +609,7 @@
 
                 <div class="dialogue-bubble">
                     <div class="dialogue-texts">
-                        <p class="dialogue-chinese">${line.chinese_text || ""}</p>
-                        <p class="dialogue-pinyin">${line.pinyin_text || ""}</p>
+                        ${renderMandarinPinyinCells(line.chinese_text, line.pinyin_text)}
                         <p class="dialogue-meaning">${line.meaning || ""}</p>
                     </div>
 
