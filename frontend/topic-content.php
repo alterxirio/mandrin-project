@@ -101,8 +101,12 @@
 
                     <!-- Card Body -->
                     <button class="word-btn" onclick="playAudio('<?php echo $row['audio_path']; ?>')">
-                        <span><?php echo $row['pinyin']; ?></span>
-                        <p><b><?php echo $row['chinese']; ?></b></p>
+                        <?php
+                            $pinyinParts = preg_split('/[\s,]+/u', trim((string)$row['pinyin']), -1, PREG_SPLIT_NO_EMPTY);
+                            $formattedPinyin = implode(' ', $pinyinParts);
+                        ?>
+                        <span><?php echo $formattedPinyin; ?></span>
+                        <p><?php echo $row['chinese']; ?></p>
                     </button>
 
                 </div>
