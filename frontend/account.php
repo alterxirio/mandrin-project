@@ -23,6 +23,7 @@ $isStudent = isset($_SESSION['role']) && strtolower((string)$_SESSION['role']) =
 $upcomingHomework = null;
 $teacherClassStats = [];
 $isTeacher = isset($_SESSION['role']) && strtolower((string)$_SESSION['role']) === 'pensyarah';
+$availableClasses = [];
 
 if ($isStudent && $studentId > 0 && $con instanceof mysqli) {
     $statsSql = "
@@ -99,6 +100,25 @@ if ($isStudent && $studentId > 0 && $con instanceof mysqli) {
 }
 
 if ($isTeacher && $con instanceof mysqli) {
+    $availableClassSql = "
+        SELECT class_name FROM (
+            SELECT DISTINCT class AS class_name FROM class_students WHERE class IS NOT NULL AND class <> ''
+            UNION
+            SELECT DISTINCT class AS class_name FROM homework WHERE class IS NOT NULL AND class <> ''
+        ) AS class_pool
+        ORDER BY class_name ASC
+    ";
+
+    $availableClassResult = mysqli_query($con, $availableClassSql);
+    if ($availableClassResult) {
+        while ($availableClassRow = mysqli_fetch_assoc($availableClassResult)) {
+            $className = trim((string)($availableClassRow['class_name'] ?? ''));
+            if ($className !== '') {
+                $availableClasses[] = $className;
+            }
+        }
+    }
+
     $teacherClassSql = "
         SELECT
             c.class,
@@ -169,6 +189,24 @@ if ($averageValue <= 49) {
     <?php include("navbar.php")?>
 
     <main class="max-w-5xl mx-auto px-4 py-6">
+        <?php if ($isTeacher && isset($_GET['create_student']) && $_GET['create_student'] === 'success') { ?>
+            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Pelajar berjaya ditambah.
+            </div>
+        <?php } ?>
+
+        <?php if ($isTeacher && isset($_GET['create_student']) && $_GET['create_student'] === 'error') { ?>
+            <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                Gagal menambah pelajar. Sila semak maklumat dan cuba lagi.
+            </div>
+        <?php } ?>
+
+        <?php if ($isTeacher && isset($_GET['create_student']) && $_GET['create_student'] === 'duplicate') { ?>
+            <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                Nama pelajar atau angka giliran sudah digunakan.
+            </div>
+        <?php } ?>
+
         <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -256,7 +294,18 @@ if ($averageValue <= 49) {
                                             <h3 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($classStat['class']); ?></h3>
                                             <p class="text-sm text-gray-600 mt-1"><?php echo (int)$classStat['total_students']; ?> pelajar</p>
                                         </div>
-                                        <span class="text-2xl font-bold text-red-600"><?php echo number_format((float)$classStat['average_score'], 1); ?>%</span>
+                                        <div class="flex flex-col items-end gap-2">
+                                            <button
+                                                type="button"
+                                                data-modal-target="add-student-modal"
+                                                data-modal-toggle="add-student-modal"
+                                                data-selected-class="<?php echo htmlspecialchars($classStat['class']); ?>"
+                                                class="inline-flex items-center justify-center rounded-lg bg-[#B71C1C] px-4 py-2 text-white text-sm font-medium hover:bg-[#8E1616] transition add-student-btn"
+                                            >
+                                                Tambah Pelajar
+                                            </button>
+                                            <span class="text-2xl font-bold text-red-600"><?php echo number_format((float)$classStat['average_score'], 1); ?>%</span>
+                                        </div>
                                     </div>
                                     <div class="mt-4 grid grid-cols-3 gap-2 text-center">
                                         <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-2">
@@ -294,5 +343,73 @@ if ($averageValue <= 49) {
         </form>
 
     </main>
+
+    <?php if ($isTeacher) { ?>
+        <div id="add-student-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+            <div class="relative p-4 w-full max-w-md max-h-full">
+                <div class="relative bg-white rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-900">Tambah Pelajar</h3>
+                        <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="add-student-modal">
+                            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 12 12M13 1 1 13"/>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+
+                    <form action="../backend/student-createBE.php" method="post" class="p-4 md:p-5 space-y-4">
+                        <div>
+                            <label for="student_name" class="block mb-2 text-sm font-medium text-gray-900">Nama Pelajar (Username)</label>
+                            <input type="text" id="student_name" name="student_name" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-200 focus:border-red-400 block w-full p-2.5" placeholder="Contoh: AHMAD BIN ALI">
+                        </div>
+
+                        <div>
+                            <label for="student_password" class="block mb-2 text-sm font-medium text-gray-900">Kata Laluan (Angka Giliran)</label>
+                            <input type="text" id="student_password" name="student_password" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-200 focus:border-red-400 block w-full p-2.5" placeholder="Masukkan angka giliran pelajar">
+                            <p class="mt-1 text-xs text-gray-500">Sila masukkan angka giliran pelajar.</p>
+                        </div>
+
+                        <div>
+                            <label for="student_class" class="block mb-2 text-sm font-medium text-gray-900">Kelas</label>
+                            <select id="student_class" name="student_class" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-200 focus:border-red-400 block w-full p-2.5">
+                                <option value="">-- Pilih kelas --</option>
+                                <?php foreach ($availableClasses as $availableClass) { ?>
+                                    <option value="<?php echo htmlspecialchars($availableClass); ?>"><?php echo htmlspecialchars($availableClass); ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2">
+                            <button type="button" data-modal-hide="add-student-modal" class="py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100">Batal</button>
+                            <button type="submit" class="text-white bg-[#B71C1C] hover:bg-[#8E1616] focus:ring-4 focus:outline-none focus:ring-red-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const studentNameInput = document.getElementById('student_name');
+                const classSelect = document.getElementById('student_class');
+
+                if (studentNameInput) {
+                    studentNameInput.addEventListener('input', function () {
+                        this.value = this.value.toUpperCase();
+                    });
+                }
+
+                document.querySelectorAll('.add-student-btn').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const selectedClass = this.getAttribute('data-selected-class') || '';
+                        if (classSelect && selectedClass !== '') {
+                            classSelect.value = selectedClass;
+                        }
+                    });
+                });
+            });
+        </script>
+    <?php } ?>
 </body>
 </html>
