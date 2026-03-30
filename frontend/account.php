@@ -283,7 +283,17 @@ if ($averageValue <= 49) {
 
             <?php if ($isTeacher) { ?>
                 <div class="mt-8 space-y-4">
-                    <h2 class="text-xl font-bold text-gray-900">Status Kelas</h2>
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="text-xl font-bold text-gray-900">Status Kelas</h2>
+                        <button
+                            type="button"
+                            data-modal-target="add-student-modal"
+                            data-modal-toggle="add-student-modal"
+                            class="inline-flex items-center justify-center rounded-lg bg-[#B71C1C] px-4 py-2 text-white text-sm font-medium hover:bg-[#8E1616] transition add-student-btn"
+                        >
+                            Tambah Pelajar
+                        </button>
+                    </div>
                     <?php if (count($teacherClassStats) > 0) { ?>
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <?php foreach ($teacherClassStats as $classStat) { ?>
@@ -295,15 +305,6 @@ if ($averageValue <= 49) {
                                             <p class="text-sm text-gray-600 mt-1"><?php echo (int)$classStat['total_students']; ?> pelajar</p>
                                         </div>
                                         <div class="flex flex-col items-end gap-2">
-                                            <button
-                                                type="button"
-                                                data-modal-target="add-student-modal"
-                                                data-modal-toggle="add-student-modal"
-                                                data-selected-class="<?php echo htmlspecialchars($classStat['class']); ?>"
-                                                class="inline-flex items-center justify-center rounded-lg bg-[#B71C1C] px-4 py-2 text-white text-sm font-medium hover:bg-[#8E1616] transition add-student-btn"
-                                            >
-                                                Tambah Pelajar
-                                            </button>
                                             <span class="text-2xl font-bold text-red-600"><?php echo number_format((float)$classStat['average_score'], 1); ?>%</span>
                                         </div>
                                     </div>
@@ -372,7 +373,7 @@ if ($averageValue <= 49) {
 
                         <div>
                             <label for="student_class" class="block mb-2 text-sm font-medium text-gray-900">Kelas</label>
-                            <select id="student_class" name="student_class" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-200 focus:border-red-400 block w-full p-2.5">
+                            <select id="student_class" name="student_class" required class="bg-white border border-rose-300 text-gray-900 text-sm rounded-xl focus:ring-red-200 focus:border-red-400 block w-full p-3">
                                 <option value="">-- Pilih kelas --</option>
                                 <?php foreach ($availableClasses as $availableClass) { ?>
                                     <option value="<?php echo htmlspecialchars($availableClass); ?>"><?php echo htmlspecialchars($availableClass); ?></option>
@@ -393,6 +394,7 @@ if ($averageValue <= 49) {
             document.addEventListener('DOMContentLoaded', function () {
                 const studentNameInput = document.getElementById('student_name');
                 const classSelect = document.getElementById('student_class');
+                const addStudentButtons = document.querySelectorAll('.add-student-btn');
 
                 if (studentNameInput) {
                     studentNameInput.addEventListener('input', function () {
@@ -400,11 +402,10 @@ if ($averageValue <= 49) {
                     });
                 }
 
-                document.querySelectorAll('.add-student-btn').forEach(function (button) {
+                addStudentButtons.forEach(function (button) {
                     button.addEventListener('click', function () {
-                        const selectedClass = this.getAttribute('data-selected-class') || '';
-                        if (classSelect && selectedClass !== '') {
-                            classSelect.value = selectedClass;
+                        if (classSelect) {
+                            classSelect.value = '';
                         }
                     });
                 });
