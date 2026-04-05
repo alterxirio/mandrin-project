@@ -1,0 +1,5 @@
+# Ignore the real credentials
+config/config.php
+
+# But DO NOT ignore the example file
+!config/configMandarin.php
