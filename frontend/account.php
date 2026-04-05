@@ -8,6 +8,13 @@ if (isset($_POST['logout'])) {
     exit;
 }
 
+$allowedPrograms = ['KPD', 'BAK', 'BPM', 'KMK', 'HBP', 'HSK'];
+$year = date('Y');
+$classOptions = [];
+foreach ($allowedPrograms as $program) {
+    $classOptions[] = '2 DVM ' . $program . ' ' . $year;
+}
+
 $studentStats = [
     'average_score' => 0,
     'correct_answer' => 0,
@@ -375,8 +382,10 @@ if ($averageValue <= 49) {
                             <label for="student_class" class="block mb-2 text-sm font-medium text-gray-900">Kelas</label>
                             <select id="student_class" name="student_class" required class="bg-white border border-rose-300 text-gray-900 text-sm rounded-xl focus:ring-red-200 focus:border-red-400 block w-full p-3">
                                 <option value="">-- Pilih kelas --</option>
-                                <?php foreach ($availableClasses as $availableClass) { ?>
-                                    <option value="<?php echo htmlspecialchars($availableClass); ?>"><?php echo htmlspecialchars($availableClass); ?></option>
+                                <?php foreach ($classOptions as $classOption) { ?>
+                                    <option value="<?php echo htmlspecialchars($classOption); ?>" <?php echo ((string)($student['class'] ?? '') === $classOption) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($classOption); ?>
+                                    </option>
                                 <?php } ?>
                             </select>
                         </div>
