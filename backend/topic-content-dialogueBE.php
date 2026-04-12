@@ -114,7 +114,7 @@ function respondScenarioResult(bool $success, string $message, int $topicId): vo
         exit;
     }
 
-    header("Location: ../frontend/topic-content.php?id=$topicId");
+    header("Location: ../frontend/topic-content.php?id=$topicId&section=dialogue");
     exit;
 }
 
@@ -240,7 +240,7 @@ if (isset($_GET['delete-scenario-id'])) {
         $stmt->close();
     }
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    header("Location: ../frontend/topic-content.php?id=$topik_id&section=dialogue");
     exit;
 }
 
@@ -300,7 +300,7 @@ if (isset($_POST['edit_dialogue_id'])) {
     $sql->execute();
     $sql->close();
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    header("Location: ../frontend/topic-content.php?id=$topik_id&section=dialogue");
     exit;
 }
 
@@ -337,7 +337,7 @@ if (isset($_POST['add_dialogue'])) {
     $insert->execute();
     $insert->close();
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    header("Location: ../frontend/topic-content.php?id=$topik_id&section=dialogue");
     exit;
 }
 
@@ -360,7 +360,7 @@ if (isset($_GET['delete-id'])) {
     $del->execute();
     $del->close();
 
-    header("Location: ../frontend/topic-content.php?id=$topik_id");
+    header("Location: ../frontend/topic-content.php?id=$topik_id&section=dialogue");
     exit;
 }
 ?>
