@@ -534,6 +534,16 @@
     const wordContainer = document.getElementById("wordContainer");
     const dialogueContainer = document.getElementById("dialogueContainer");
 
+    function setActiveSection(section) {
+        const url = new URL(window.location.href);
+        if (section === "dialogue") {
+            url.searchParams.set("section", "dialogue");
+        } else {
+            url.searchParams.delete("section");
+        }
+        window.history.replaceState({}, "", url.toString());
+    }
+
     btnWord.addEventListener("click", () => {
         wordContainer.classList.remove("hide");
         dialogueContainer.classList.add("hide");
@@ -543,6 +553,8 @@
 
         btnDialogue.classList.replace("bg-[#D32F2F]", "bg-white");
         btnDialogue.classList.replace("text-white", "text-black");
+
+        setActiveSection("word");
     });
 
     btnDialogue.addEventListener("click", () => {
@@ -554,7 +566,14 @@
 
         btnWord.classList.replace("bg-[#D32F2F]", "bg-white");
         btnWord.classList.replace("text-white", "text-black");
+
+        setActiveSection("dialogue");
     });
+
+    const activeSection = new URLSearchParams(window.location.search).get("section");
+    if (activeSection === "dialogue") {
+        btnDialogue.click();
+    }
 
     const existingScenarios = <?php echo json_encode($scenarioRows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
     const existingDialogues = <?php echo json_encode($dialogueRows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
