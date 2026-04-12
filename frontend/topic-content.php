@@ -50,7 +50,6 @@
 
     <div class="top">
         <p>你好 <b><?php echo $_SESSION['name']; ?></b></p>
-        <p><?php echo date('j/M/Y'); ?></p>
     </div>
 
     <div class="mid">
@@ -58,14 +57,14 @@
         <!-- Vertical Menu -->
         <div class="mid-header vertical-menu">
 
-            <button id="btnWord">
-                <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
+            <button id="btnWord" class=" bg-[#D32F2F] text-white rounded-t-full ">
+                <div class="mid-header-component  hover:font-bold">
                         <span class="material-symbols-outlined">menu_book</span>
                 </div>
             </button>
 
-            <button id="btnDialogue" >
-                <div class="mid-header-component hover:bg-[#D32F2F] hover:text-white hover:font-bold">
+            <button id="btnDialogue" class=" bg-white text-black rounded-b-full ">
+                <div class="mid-header-component  hover:font-bold">
                         <span class="material-symbols-outlined">chat_bubble</span>
                 </div>
             </button>
@@ -538,11 +537,23 @@
     btnWord.addEventListener("click", () => {
         wordContainer.classList.remove("hide");
         dialogueContainer.classList.add("hide");
+
+        btnWord.classList.replace("bg-white", "bg-[#D32F2F]");
+        btnWord.classList.replace("text-black", "text-white");
+
+        btnDialogue.classList.replace("bg-[#D32F2F]", "bg-white");
+        btnDialogue.classList.replace("text-white", "text-black");
     });
 
     btnDialogue.addEventListener("click", () => {
         dialogueContainer.classList.remove("hide");
         wordContainer.classList.add("hide");
+
+        btnDialogue.classList.replace("bg-white", "bg-[#D32F2F]");
+        btnDialogue.classList.replace("text-black", "text-white");
+
+        btnWord.classList.replace("bg-[#D32F2F]", "bg-white");
+        btnWord.classList.replace("text-white", "text-black");
     });
 
     const existingScenarios = <?php echo json_encode($scenarioRows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;

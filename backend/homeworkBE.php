@@ -146,6 +146,16 @@ try {
 
 } catch (Exception $e) {
     mysqli_rollback($con);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    
+    // 1. Log the general error message
+    debug_log("Error: " . $e->getMessage());
+    
+    // 2. Log the specific MySQL error from the connection
+    debug_log("MySQL Error: " . mysqli_error($con));
+    
+    // 3. Log the state of the variables being inserted (optional)
+    debug_log("Last attempted HW ID: " . $homeworkId);
+
+    echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
 }
-?>
+?>  

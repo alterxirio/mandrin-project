@@ -32,7 +32,6 @@
 
         <div class="top">
             <p>你好 <b><?php echo $_SESSION['name'] ?></b></p>
-            <p><?php echo date('j/M/Y');?></p>
         </div>  
 
         <div class="middle">
@@ -65,9 +64,11 @@
 
 
                             <!-- Top Banner -->
-                            <div class="gc-banner">
-                                <img src="<?php echo $row['banner_path']; ?>" alt="banner">
-                            </div>
+                            <button class="topic-content" data-id="<?php echo $row['id'];?>">
+                                <div class="gc-banner">
+                                    <img src="<?php echo $row['banner_path']; ?>" alt="banner">
+                                </div>
+                            </button>
 
                             <!-- Body -->
                             <button class="topic-content" data-id="<?php echo $row['id'];?>">

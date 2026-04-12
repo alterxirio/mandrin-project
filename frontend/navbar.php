@@ -11,9 +11,8 @@
 <nav class="fixed w-full z-20 top-0 start-0 border-default" style="background-color: #B71C1C;">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
 
-    <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-        <img src="https://flowbite.com/docs/images/logo.svg" class="h-7" alt="Flowbite Logo" />
-        <span class="self-center text-xl font-semibold text-white whitespace-nowrap">Flowbite</span>
+    <a href="../frontend/main.php" class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="../media/graphic/logo.png" class="w-30" alt="Flowbite Logo" />
     </a>
 
     <button data-collapse-toggle="navbar-dropdown" type="button" 
@@ -46,7 +45,7 @@
               <ul class="p-2 text-sm font-medium">
                 <?php if ($result): ?>
                   <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <li><a href="../frontend/topic-content.php?id=<?php echo $row['id']?>" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['id']?></a></li>
+                    <li><a href="../frontend/topic-content.php?id=<?php echo $row['id']?>" class="inline-flex items-center w-full p-2 rounded text-white dropdown-hover">Topik <?php echo $row['topik']?></a></li>
                   <?php } ?>
                 <?php else: ?>
                   <li><span class="inline-flex items-center w-full p-2 rounded text-white/80">Tiada topik</span></li>
