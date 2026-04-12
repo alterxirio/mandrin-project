@@ -275,8 +275,11 @@ if (isset($_POST['edit_dialogue_id'])) {
             unlink($old_audio);
         }
 
-        $fallbackAudioNo = $useScenarioSchema ? $lineNo : time();
-        $filename = $old_audio ? basename($old_audio) : ($fallbackAudioNo . '.mp3');
+        if ($useScenarioSchema) {
+            $filename = $scenarioId . '-' . $lineNo . '-' . uniqid('', true) . '.mp3';
+        } else {
+            $filename = time() . '-' . uniqid('', true) . '.mp3';
+        }
         $destination = $folder . $filename;
         move_uploaded_file($_FILES['edit_audioDialogue']['tmp_name'], $destination);
 
@@ -318,7 +321,11 @@ if (isset($_POST['add_dialogue'])) {
 
     $lineNo = $useScenarioSchema ? nextLineNo($con, $scenarioId) : 0;
 
-    $audioName = ($useScenarioSchema ? $lineNo : time()) . ".mp3";
+    if ($useScenarioSchema) {
+        $audioName = $scenarioId . "-" . $lineNo . "-" . uniqid('', true) . ".mp3";
+    } else {
+        $audioName = time() . "-" . uniqid('', true) . ".mp3";
+    }
     $destination = $folder . $audioName;
 
     if (isset($_FILES['add_audioDialogue']) && $_FILES['add_audioDialogue']['error'] == 0) {
