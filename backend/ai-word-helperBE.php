@@ -1,8 +1,9 @@
 <?php
 
 header('Content-Type: application/json; charset=utf-8');
+include('../config/config.php');
 
-const OPENAI_API_KEY = 'PASTE_YOUR_OPENAI_API_KEY_HERE';
+const OPENAI_API_KEY = $apiAppKey;
 const OPENAI_MODEL = 'gpt-4.1-mini';
 
 function sendJson(array $payload, int $statusCode = 200): void {
