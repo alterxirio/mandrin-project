@@ -320,3 +320,67 @@ body {
         font-size: 0.8rem;
     }   
 }
+
+.word-card-body {
+    position: relative;
+}
+
+.ai-word-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #D32F2F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ai-word-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
+}
+
+.ai-word-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.ai-result-section {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 14px 16px;
+}
+
+.ai-result-section h4 {
+    margin: 0 0 8px;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.ai-result-section p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.45;
+}
+
+.ai-sentence-chinese {
+    color: #111827 !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.ai-sentence-pinyin {
+    margin-top: 4px !important;
+    color: #D32F2F !important;
+    font-weight: 600;
+}

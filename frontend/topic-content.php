@@ -99,14 +99,27 @@
                     <?php } ?>
 
                     <!-- Card Body -->
-                    <button class="word-btn" onclick="playAudio('<?php echo $row['audio_path']; ?>')">
-                        <?php
-                            $pinyinParts = preg_split('/[\s,]+/u', trim((string)$row['pinyin']), -1, PREG_SPLIT_NO_EMPTY);
-                            $formattedPinyin = implode(' ', $pinyinParts);
-                        ?>
-                        <span><?php echo $formattedPinyin; ?></span>
-                        <p><?php echo $row['chinese']; ?></p>
-                    </button>
+                    <?php
+                        $pinyinParts = preg_split('/[\s,]+/u', trim((string)$row['pinyin']), -1, PREG_SPLIT_NO_EMPTY);
+                        $formattedPinyin = implode(' ', $pinyinParts);
+                    ?>
+                    <div class="word-card-body">
+                        <button
+                            type="button"
+                            class="ai-word-btn"
+                            title="AI Word Helper"
+                            data-chinese="<?php echo htmlspecialchars((string)$row['chinese'], ENT_QUOTES, 'UTF-8'); ?>"
+                            data-pinyin="<?php echo htmlspecialchars((string)$formattedPinyin, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-meaning="<?php echo htmlspecialchars((string)$row['meaning'], ENT_QUOTES, 'UTF-8'); ?>"
+                        >
+                            <span class="material-symbols-outlined">auto_awesome</span>
+                        </button>
+
+                        <button class="word-btn" onclick="playAudio('<?php echo $row['audio_path']; ?>')">
+                            <span><?php echo $formattedPinyin; ?></span>
+                            <p><?php echo $row['chinese']; ?></p>
+                        </button>
+                    </div>
 
                 </div>
             <?php } ?>
@@ -152,6 +165,53 @@
     </div>
 </div>
 
+
+
+<div id="ai-word-modal" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <div class="relative bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                <div>
+                    <p class="text-sm font-semibold text-red-600">AI Word Helper</p>
+                    <h3 id="ai-word-title" class="text-xl font-semibold text-gray-900">Word Explanation</h3>
+                </div>
+                <button id="ai-word-close" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <div id="ai-word-loading" class="hidden rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
+                    AI is preparing the explanation...
+                </div>
+
+                <div id="ai-word-error" class="hidden rounded-lg bg-red-50 p-4 text-sm text-red-700"></div>
+
+                <div id="ai-word-content" class="space-y-4">
+                    <section class="ai-result-section">
+                        <h4>Sebutan / Pronunciation</h4>
+                        <p id="ai-pronunciation">-</p>
+                    </section>
+
+                    <section class="ai-result-section">
+                        <h4>Maksud / Translation</h4>
+                        <p id="ai-translation">-</p>
+                    </section>
+
+                    <section class="ai-result-section">
+                        <h4>Contoh Ayat / Example Sentence</h4>
+                        <p id="ai-sentence-chinese" class="ai-sentence-chinese">-</p>
+                        <p id="ai-sentence-pinyin" class="ai-sentence-pinyin">-</p>
+                        <p id="ai-sentence-translation">-</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="new-situasi-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black/80 backdrop-blur-sm">
     <div class="relative p-4 w-full max-w-xl max-h-full">
@@ -468,6 +528,99 @@
         currentAudio = new Audio(path);
         currentAudio.play();
     }
+
+    const aiWordModal = document.getElementById("ai-word-modal");
+    const aiWordClose = document.getElementById("ai-word-close");
+    const aiWordTitle = document.getElementById("ai-word-title");
+    const aiWordLoading = document.getElementById("ai-word-loading");
+    const aiWordError = document.getElementById("ai-word-error");
+    const aiWordContent = document.getElementById("ai-word-content");
+    const aiPronunciation = document.getElementById("ai-pronunciation");
+    const aiTranslation = document.getElementById("ai-translation");
+    const aiSentenceChinese = document.getElementById("ai-sentence-chinese");
+    const aiSentencePinyin = document.getElementById("ai-sentence-pinyin");
+    const aiSentenceTranslation = document.getElementById("ai-sentence-translation");
+
+    function showAiWordModal() {
+        aiWordModal?.classList.remove("hidden");
+    }
+
+    function hideAiWordModal() {
+        aiWordModal?.classList.add("hidden");
+    }
+
+    function setAiWordLoading(isLoading) {
+        aiWordLoading?.classList.toggle("hidden", !isLoading);
+        aiWordContent?.classList.toggle("hidden", isLoading);
+    }
+
+    function setAiWordError(message = "") {
+        if (!aiWordError) return;
+        aiWordError.textContent = message;
+        aiWordError.classList.toggle("hidden", !message);
+    }
+
+    function setTextContent(element, value) {
+        if (element) {
+            element.textContent = value || "-";
+        }
+    }
+
+    aiWordClose?.addEventListener("click", hideAiWordModal);
+    aiWordModal?.addEventListener("click", function (event) {
+        if (event.target === aiWordModal) {
+            hideAiWordModal();
+        }
+    });
+
+    document.querySelectorAll(".ai-word-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+            const chinese = this.dataset.chinese || "";
+            const pinyin = this.dataset.pinyin || "";
+            const meaning = this.dataset.meaning || "";
+
+            setTextContent(aiWordTitle, chinese ? `AI Helper: ${chinese}` : "AI Word Helper");
+            setTextContent(aiPronunciation, "-");
+            setTextContent(aiTranslation, meaning || "-");
+            setTextContent(aiSentenceChinese, "-");
+            setTextContent(aiSentencePinyin, "-");
+            setTextContent(aiSentenceTranslation, "-");
+            setAiWordError("");
+            setAiWordLoading(true);
+            showAiWordModal();
+
+            fetch("../backend/ai-word-helperBE.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: new URLSearchParams({
+                    chinese,
+                    pinyin,
+                    meaning
+                }).toString()
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data?.success) {
+                    throw new Error(data?.message || "AI helper failed. Please try again.");
+                }
+
+                setTextContent(aiPronunciation, data.pronunciation);
+                setTextContent(aiTranslation, data.translation);
+                setTextContent(aiSentenceChinese, data.sentence_chinese);
+                setTextContent(aiSentencePinyin, data.sentence_pinyin);
+                setTextContent(aiSentenceTranslation, data.sentence_translation);
+            })
+            .catch((error) => {
+                setAiWordError(error.message || "Unable to load AI explanation.");
+            })
+            .finally(() => {
+                setAiWordLoading(false);
+            });
+        });
+    });
 
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', function () {
