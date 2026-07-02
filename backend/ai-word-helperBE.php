@@ -1,9 +1,13 @@
 <?php
 
 header('Content-Type: application/json; charset=utf-8');
-include('../config/config.php');
 
-const OPENAI_API_KEY = $apiAppKey;
+$configPath = __DIR__ . '/../config/config.php';
+if (is_file($configPath)) {
+    require_once $configPath;
+}
+
+$openAiApiKey = trim((string)($apiAppKey ?? getenv('OPENAI_API_KEY') ?: ''));
 const OPENAI_MODEL = 'gpt-4.1-mini';
 
 function sendJson(array $payload, int $statusCode = 200): void {
@@ -34,10 +38,10 @@ if ($chinese === '') {
     sendJson(['success' => false, 'message' => 'Missing Mandarin word.'], 400);
 }
 
-if (OPENAI_API_KEY === 'PASTE_YOUR_OPENAI_API_KEY_HERE' || OPENAI_API_KEY === '') {
+if ($openAiApiKey === '' || $openAiApiKey === 'PASTE_YOUR_OPENAI_API_KEY_HERE') {
     sendJson([
         'success' => false,
-        'message' => 'AI API key is not configured yet. Please add your OpenAI API key in backend/ai-word-helperBE.php.'
+        'message' => 'AI API key is not configured yet. Please configure $apiAppKey in config/config.php or set OPENAI_API_KEY.'
     ], 500);
 }
 
@@ -81,7 +85,7 @@ curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST => true,
     CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer ' . OPENAI_API_KEY,
+        'Authorization: Bearer ' . $openAiApiKey,
         'Content-Type: application/json'
     ],
     CURLOPT_POSTFIELDS => json_encode($requestPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),

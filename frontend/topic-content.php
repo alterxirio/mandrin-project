@@ -601,12 +601,23 @@
                     meaning
                 }).toString()
             })
-            .then((res) => res.json())
-            .then((data) => {
-                if (!data?.success) {
+            .then(async (res) => {
+                const responseText = await res.text();
+                let data;
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch (error) {
+                    throw new Error("AI helper returned an invalid server response. Please check the API key and server configuration.");
+                }
+
+                if (!res.ok || !data?.success) {
                     throw new Error(data?.message || "AI helper failed. Please try again.");
                 }
 
+                return data;
+            })
+            .then((data) => {
                 setTextContent(aiPronunciation, data.pronunciation);
                 setTextContent(aiTranslation, data.translation);
                 setTextContent(aiSentenceChinese, data.sentence_chinese);
