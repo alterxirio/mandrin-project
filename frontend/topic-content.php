@@ -500,11 +500,11 @@
                     <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
-                    <h3 class="mb-5 text-lg font-normal text-gray-500">Anda pasti ingin memadam dialog ini?</h3>
+                    <h3 id="edit-delete-modal-message" class="mb-5 text-lg font-normal text-gray-500">Anda pasti ingin memadam dialog ini?</h3>
                     <button id="edit-confirm-delete" data-modal-hide="popup-modal" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
                         Ya, Saya Pasti
                     </button>
-                    <button data-modal-hide="delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+                    <button data-modal-hide="edit-delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
                         Tidak, Batalkan
                     </button>
                 </div>
@@ -845,7 +845,7 @@
 
                         <?php if ($_SESSION['role'] == "Pensyarah") { ?>
                             <div class="flex items-center gap-2">
-                                <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-id="${scenarioId}">
+                                <button type="button" title="Delete Situasi" class="delete-btn situasi-delete-btn" data-modal-target="edit-delete-modal" data-modal-toggle="edit-delete-modal" data-id="${scenarioId}" data-topic-id="<?php echo (int)$_GET['id']; ?>">
                                     <span class="material-icons">delete</span>
                                 </button>
                                 <button type="button" title="Edit Situasi" class="edit-btn situasi-edit-btn" data-id="${scenarioId}" data-modal-target="new-situasi-modal" data-modal-toggle="new-situasi-modal">
@@ -1001,8 +1001,12 @@
             if (dialogueDeleteBtn) {
                 const userId = dialogueDeleteBtn.getAttribute('data-id');
                 const topicId = dialogueDeleteBtn.getAttribute('data-topic-id');
-                document.getElementById('edit-confirm-delete').setAttribute('data-id', userId);
-                document.getElementById('edit-confirm-delete').setAttribute('data-topic-id', topicId);
+                const confirmDeleteBtn = document.getElementById('edit-confirm-delete');
+                document.getElementById('edit-delete-modal-message').textContent = 'Anda pasti ingin memadam dialog ini?';
+                confirmDeleteBtn.setAttribute('data-delete-type', 'dialogue');
+                confirmDeleteBtn.setAttribute('data-id', userId);
+                confirmDeleteBtn.setAttribute('data-topic-id', topicId);
+                new Modal(document.getElementById('edit-delete-modal')).show();
                 return;
             }
 
@@ -1010,7 +1014,13 @@
             if (deleteBtn) {
                 const scenarioId = parseInt(deleteBtn.getAttribute('data-id'), 10);
                 if (!Number.isInteger(scenarioId) || scenarioId <= 0) return;
-                window.location.href = '../backend/topic-content-dialogueBE.php?delete-scenario-id=' + scenarioId + '&topik_id=<?php echo (int)$_GET['id']; ?>';
+                const topicId = deleteBtn.getAttribute('data-topic-id');
+                const confirmDeleteBtn = document.getElementById('edit-confirm-delete');
+                document.getElementById('edit-delete-modal-message').textContent = 'Anda pasti ingin memadam situasi ini? Semua dialog dalam situasi ini juga akan dipadam.';
+                confirmDeleteBtn.setAttribute('data-delete-type', 'scenario');
+                confirmDeleteBtn.setAttribute('data-id', String(scenarioId));
+                confirmDeleteBtn.setAttribute('data-topic-id', topicId);
+                new Modal(document.getElementById('edit-delete-modal')).show();
             }
         });
     }
@@ -1027,6 +1037,13 @@ document.querySelectorAll('.dialogue-closeBtn').forEach(btn => {
 document.getElementById('edit-confirm-delete').addEventListener('click', function() {
     let userId = this.getAttribute('data-id'); // Retrieve stored ID
     let topicId = this.getAttribute('data-topic-id'); // Retrieve stored ID
+    let deleteType = this.getAttribute('data-delete-type') || 'dialogue';
+
+    if (deleteType === 'scenario') {
+        window.location.href = '../backend/topic-content-dialogueBE.php?delete-scenario-id=' + userId + '&topik_id=' + topicId;
+        return;
+    }
+
     window.location.href = '../backend/topic-content-dialogueBE.php?delete-id=' + userId+"&topik_id=" + topicId; // Redirect with ID
         
 });
