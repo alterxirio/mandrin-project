@@ -27,7 +27,7 @@
     }   
 ?>
 
-<?php session_start(); ?>
+<?php require_once __DIR__ . '/../config/session.php'; ?>
 <?php include("../config/config.php"); ?>
 
 <!DOCTYPE html>
