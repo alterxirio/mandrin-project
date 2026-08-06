@@ -1,11 +1,12 @@
 <?php
 include('../config/config.php');
+require_once __DIR__ . '/../config/upload.php';
 
 $topik_id = isset($_GET['topik_id']) ? (int)$_GET['topik_id'] : 0;
-$folder = "../media/audio/dialogue/dialogue-" . $topik_id . "/";
+$folder = "media/audio/dialogue/dialogue-" . $topik_id;
 
-if ($topik_id > 0 && !is_dir($folder)) {
-    mkdir($folder, 0777, true);
+if ($topik_id > 0) {
+    ensureWritableDirectory($folder);
 }
 
 function ensureDefaultScenario(mysqli $con, int $topicId): int {
@@ -271,24 +272,32 @@ if (isset($_POST['edit_dialogue_id'])) {
         $q->close();
 
         $old_audio = $d['audio_path'] ?? '';
-        if ($old_audio !== '' && file_exists($old_audio)) {
-            unlink($old_audio);
-        }
 
         if ($useScenarioSchema) {
             $filename = $scenarioId . '-' . $lineNo . '-' . uniqid('', true) . '.mp3';
         } else {
             $filename = time() . '-' . uniqid('', true) . '.mp3';
         }
-        $destination = $folder . $filename;
-        move_uploaded_file($_FILES['edit_audioDialogue']['tmp_name'], $destination);
+        $destination = saveUploadedFile('edit_audioDialogue', $folder, $filename);
 
-        if ($useScenarioSchema) {
-            $sql = $con->prepare("UPDATE dialogues SET scenario_id = ?, line_no = ?, chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ?, audio_path = ? WHERE id = ?");
-            $sql->bind_param("iisssssi", $scenarioId, $lineNo, $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $destination, $edit_dialogue_id);
+        if ($destination !== null) {
+            removeUploadedFile($old_audio);
+
+            if ($useScenarioSchema) {
+                $sql = $con->prepare("UPDATE dialogues SET scenario_id = ?, line_no = ?, chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ?, audio_path = ? WHERE id = ?");
+                $sql->bind_param("iisssssi", $scenarioId, $lineNo, $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $destination, $edit_dialogue_id);
+            } else {
+                $sql = $con->prepare("UPDATE dialogues SET chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ?, audio_path = ? WHERE id = ?");
+                $sql->bind_param("sssssi", $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $destination, $edit_dialogue_id);
+            }
         } else {
-            $sql = $con->prepare("UPDATE dialogues SET chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ?, audio_path = ? WHERE id = ?");
-            $sql->bind_param("sssssi", $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $destination, $edit_dialogue_id);
+            if ($useScenarioSchema) {
+                $sql = $con->prepare("UPDATE dialogues SET scenario_id = ?, line_no = ?, chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ? WHERE id = ?");
+                $sql->bind_param("iissssi", $scenarioId, $lineNo, $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $edit_dialogue_id);
+            } else {
+                $sql = $con->prepare("UPDATE dialogues SET chinese_text = ?, pinyin_text = ?, meaning = ?, character_name = ? WHERE id = ?");
+                $sql->bind_param("ssssi", $edit_dialogue, $edit_pinyinDialogue, $edit_meaningDialogue, $edit_character, $edit_dialogue_id);
+            }
         }
     } else {
         if ($useScenarioSchema) {
@@ -326,10 +335,10 @@ if (isset($_POST['add_dialogue'])) {
     } else {
         $audioName = time() . "-" . uniqid('', true) . ".mp3";
     }
-    $destination = $folder . $audioName;
+    $destination = null;
 
     if (isset($_FILES['add_audioDialogue']) && $_FILES['add_audioDialogue']['error'] == 0) {
-        move_uploaded_file($_FILES['add_audioDialogue']['tmp_name'], $destination);
+        $destination = saveUploadedFile('add_audioDialogue', $folder, $audioName);
     } else {
         $destination = "";
     }
@@ -358,8 +367,8 @@ if (isset($_GET['delete-id'])) {
     $data = $result ? $result->fetch_assoc() : null;
     $query->close();
 
-    if ($data && !empty($data['audio_path']) && file_exists($data['audio_path'])) {
-        unlink($data['audio_path']);
+    if ($data && !empty($data['audio_path'])) {
+        removeUploadedFile($data['audio_path']);
     }
 
     $del = $con->prepare("DELETE FROM dialogues WHERE id = ?");

@@ -1,10 +1,11 @@
 <?php
-session_start();
+require_once __DIR__ . '/../config/session.php';
 error_reporting(0);
 ini_set('display_errors', 0);
 
 header('Content-Type: application/json');
 include('../config/config.php');
+require_once __DIR__ . '/../config/upload.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
@@ -22,20 +23,13 @@ function saveUpload($formKey, $subFolder) {
         return null;
     }
 
-    $baseDir = '../media/homework/' . $subFolder;
-    if (!is_dir($baseDir)) {
-        mkdir($baseDir, 0777, true);
+    $fileExtension = strtolower(pathinfo($_FILES[$formKey]['name'], PATHINFO_EXTENSION));
+    if ($fileExtension === '') {
+        $fileExtension = 'bin';
     }
 
-    $fileExtension = pathinfo($_FILES[$formKey]['name'], PATHINFO_EXTENSION);
     $newName = uniqid('hw_', true) . '.' . $fileExtension;
-    $targetPath = $baseDir . '/' . $newName;
-
-    if (move_uploaded_file($_FILES[$formKey]['tmp_name'], $targetPath)) {
-        return 'media/homework/' . $subFolder . '/' . $newName;
-    }
-
-    return null;
+    return saveUploadedFile($formKey, 'media/homework/' . $subFolder, $newName);
 }
 
 function splitCsvKeepingIndex(?string $value): array {

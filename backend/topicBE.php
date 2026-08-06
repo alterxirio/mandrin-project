@@ -1,8 +1,9 @@
 <?php
 include('../config/config.php');
+require_once __DIR__ . '/../config/upload.php';
 
 // Folder to save
-$folder = "../media/graphic/";
+$folder = 'media/graphic';
 
 // Detect UPDATE
 if (isset($_POST['edit_name'])) {
@@ -15,13 +16,18 @@ if (isset($_POST['edit_name'])) {
     // Check if a new banner is uploaded
     if(isset($_FILES['edit_banner']) && $_FILES['edit_banner']['error'] === 0) {
         $newName = "Banner - " . $id . ".png";
-        $destination = $folder . $newName;
-        move_uploaded_file($_FILES['edit_banner']['tmp_name'], $destination);
+        $destination = saveUploadedFile('edit_banner', $folder, $newName);
 
-        // Update with banner
-        $sql = "UPDATE topics 
+        // Update with banner only when the upload succeeds
+        if ($destination !== null) {
+            $sql = "UPDATE topics 
                 SET topic_name='$name', chinese_character='$character', pinyin='$pinyin', banner_path='$destination'
                 WHERE topik='$id'";
+        } else {
+            $sql = "UPDATE topics 
+                SET topic_name='$name', chinese_character='$character', pinyin='$pinyin'
+                WHERE topik='$id'";
+        }
 
                 echo $id;
                 echo"1";
@@ -57,10 +63,9 @@ if (isset($_POST['add_name'])) {
     // Check banner upload
     if(isset($_FILES['add_banner']) && $_FILES['add_banner']['error'] === 0) {
         $newName = "Banner - " . $newTopicNumber . ".png";
-        $destination = $folder . $newName;
-        move_uploaded_file($_FILES['add_banner']['tmp_name'], $destination);
+        $destination = saveUploadedFile('add_banner', $folder, $newName) ?: $folder . '/Banner - 1.png';
     } else {
-        $destination = $folder . "Banner - 1.png";
+        $destination = $folder . '/Banner - 1.png';
     }
 
     $name = $_POST['add_name'];
@@ -82,9 +87,7 @@ if (isset($_GET['delete-id'])) {
     $file_path = $data['banner_path'];
 
     // 2. Delete the file
-    if(file_exists($file_path)) {
-        unlink($file_path);
-    }
+    removeUploadedFile($file_path);
 
     // 3. Delete the topic from DB
     mysqli_query($con, "DELETE FROM topics WHERE id = '$id'");

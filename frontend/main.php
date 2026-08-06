@@ -12,7 +12,7 @@
         exit; // stop page output (important!)
     }
 ?>
-<?php session_start()?>
+<?php require_once __DIR__ . '/../config/session.php'; ?>
 
 <!DOCTYPE html>
 <html lang="en">

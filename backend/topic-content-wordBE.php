@@ -1,13 +1,9 @@
 <?php
 include('../config/config.php');
+require_once __DIR__ . '/../config/upload.php';
 
-function ensureTopicAudioFolder(string $topicId): string {
-    $folder = "../media/audio/topik-{$topicId}/";
-    if (!is_dir($folder)) {
-        mkdir($folder, 0777, true);
-    }
-
-    return $folder;
+function topicAudioFolder(string $topicId): string {
+    return "media/audio/topik-{$topicId}";
 }
 
 function sanitizeAudioName(string $value): string {
@@ -22,7 +18,7 @@ function saveWordAudio(string $fileKey, string $topicId, string $wordName): ?str
         return null;
     }
 
-    $folder = ensureTopicAudioFolder($topicId);
+    $folder = topicAudioFolder($topicId);
     $extension = strtolower((string)pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
     if ($extension === '') {
         $extension = 'mp3';
@@ -30,13 +26,7 @@ function saveWordAudio(string $fileKey, string $topicId, string $wordName): ?str
 
     $safeWordName = sanitizeAudioName($wordName);
     $newName = "topik {$topicId} - {$safeWordName}.{$extension}";
-    $destination = $folder . $newName;
-
-    if (!move_uploaded_file($_FILES[$fileKey]['tmp_name'], $destination)) {
-        return null;
-    }
-
-    return $destination;
+    return saveUploadedFile($fileKey, $folder, $newName);
 }
 
 if (isset($_POST['edit_name'])) {
@@ -96,9 +86,7 @@ if (isset($_GET['delete-id'])) {
     $data = mysqli_fetch_assoc($query);
     $file_path = $data['audio_path'];
 
-    if (file_exists($file_path)) {
-        unlink($file_path);
-    }
+    removeUploadedFile($file_path);
 
     mysqli_query($con, "DELETE FROM words WHERE id = '$id'");
     $topik_id = $_GET['topic-id'];

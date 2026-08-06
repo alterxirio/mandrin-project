@@ -1,3 +1,10 @@
+<?php
+require_once __DIR__ . '/config/session.php';
+if (isset($_SESSION['id'])) {
+    header('Location: ./frontend/main.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,12 +36,12 @@
                     <form action="./backend/loginBackend.php" method="post" >
 
                         <label for="">Angka Giliran</label>
-                        <input type="text" name="username" placeholder="" value="BKV0425KA008" >
+                        <input type="text" name="username" placeholder="" >
 
                         <br>
 
                         <label for="">Kata Laluan</label>
-                        <input type="password" name="password" placeholder="" value="1245">
+                        <input type="password" name="password" placeholder="">
 
                         <br>
 
