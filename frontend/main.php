@@ -52,7 +52,7 @@
                             <?php if ($_SESSION['role'] == "Pensyarah") { ?>
 
                                 <div class="card-buttons">
-                                    <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" >
+                                    <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topik="<?php echo $row['topik']; ?>">
                                         <span class="material-icons">delete</span>
                                     </button>
                                     <button class="edit-btn" type="button" title="Edit" data-modal-target="edit-modal"  data-id="<?php echo $row['topik']; ?>">
@@ -294,7 +294,8 @@
 
     document.getElementById('confirm-delete').addEventListener('click', function() {
         let userId = this.getAttribute('data-id'); // Retrieve stored ID
-        window.location.href = '../backend/topicBE.php?delete-id=' + userId; // Redirect with ID
+        let topik = this.getAttribute('data-topik'); // Retrieve stored topik
+        window.location.href = '../backend/topicBE.php?delete-id=' + userId + '&topik=' + topik; // Redirect with both ID and topik
             
     });
 
