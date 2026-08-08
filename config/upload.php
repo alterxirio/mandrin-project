@@ -1,6 +1,11 @@
 <?php
 function projectPath(string $relativePath): string
 {
+    $relativePath = str_replace('\\', '/', $relativePath);
+    while (strpos($relativePath, '../') === 0 || strpos($relativePath, './') === 0) {
+        $relativePath = preg_replace('#^(\.\./|\./)#', '', $relativePath);
+    }
+
     return dirname(__DIR__) . '/' . ltrim($relativePath, '/');
 }
 
@@ -24,10 +29,17 @@ function ensureWritableDirectory(string $relativeDirectory): ?string
     return is_writable($absoluteDirectory) ? $absoluteDirectory : null;
 }
 
-function saveUploadedFile(string $formKey, string $relativeDirectory, string $fileName): ?string
+function saveUploadedFile(string $formKey, string $relativeDirectory, string $fileName, array $allowedMimeTypes = []): ?string
 {
     if (!isset($_FILES[$formKey]) || $_FILES[$formKey]['error'] !== UPLOAD_ERR_OK) {
         return null;
+    }
+
+    if ($allowedMimeTypes !== []) {
+        $mimeType = mime_content_type($_FILES[$formKey]['tmp_name']);
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            return null;
+        }
     }
 
     $absoluteDirectory = ensureWritableDirectory($relativeDirectory);
@@ -38,6 +50,10 @@ function saveUploadedFile(string $formKey, string $relativeDirectory, string $fi
     $safeFileName = basename($fileName);
     $relativePath = webPath($relativeDirectory . '/' . $safeFileName);
     $absolutePath = $absoluteDirectory . '/' . $safeFileName;
+
+    if (is_file($absolutePath)) {
+        unlink($absolutePath);
+    }
 
     if (!move_uploaded_file($_FILES[$formKey]['tmp_name'], $absolutePath)) {
         return null;
