@@ -2,11 +2,14 @@
     include("../config/config.php");
     if (isset($_POST['ajax_edit'])) {
 
-        $id = $_POST['topik'];
+        $id = (int)$_POST['topik'];
 
-        $sql = "SELECT * FROM topics WHERE topik = '$id'";
-        $query = mysqli_query($con, $sql);
+        $stmt = mysqli_prepare($con, "SELECT * FROM topics WHERE topik = ?");
+        mysqli_stmt_bind_param($stmt, "i", $id);
+        mysqli_stmt_execute($stmt);
+        $query = mysqli_stmt_get_result($stmt);
         $data = mysqli_fetch_assoc($query);
+        mysqli_stmt_close($stmt);
 
         echo json_encode($data);
         exit; // stop page output (important!)
@@ -52,7 +55,7 @@
                             <?php if ($_SESSION['role'] == "Pensyarah") { ?>
 
                                 <div class="card-buttons">
-                                    <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['id']; ?>" data-topik="<?php echo $row['topik']; ?>">
+                                    <button class="delete-btn" type="button" title="Delete" data-modal-target="delete-modal" data-modal-toggle="delete-modal" data-id="<?php echo $row['topik']; ?>">
                                         <span class="material-icons">delete</span>
                                     </button>
                                     <button class="edit-btn" type="button" title="Edit" data-modal-target="edit-modal"  data-id="<?php echo $row['topik']; ?>">
@@ -64,14 +67,19 @@
 
 
                             <!-- Top Banner -->
-                            <button class="topic-content" data-id="<?php echo $row['id'];?>">
+                            <button class="topic-content" data-id="<?php echo $row['topik'];?>">
                                 <div class="gc-banner">
-                                    <img src="<?php echo $row['banner_path']; ?>" alt="banner">
+                                    <?php
+                                        $bannerPath = (string)$row['banner_path'];
+                                        $bannerFile = realpath(__DIR__ . '/' . $bannerPath);
+                                        $bannerVersion = $bannerFile && is_file($bannerFile) ? filemtime($bannerFile) : time();
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($bannerPath, ENT_QUOTES, 'UTF-8') . '?v=' . $bannerVersion; ?>" alt="banner">
                                 </div>
                             </button>
 
                             <!-- Body -->
-                            <button class="topic-content" data-id="<?php echo $row['id'];?>">
+                            <button class="topic-content" data-id="<?php echo $row['topik'];?>">
                                 <div class="gc-body">
                                     <h2><?php echo $row['topic_name']; ?></h2>
                                     <br>
@@ -287,15 +295,14 @@
 
     document.querySelectorAll('[data-modal-toggle="delete-modal"]').forEach(button => {
         button.addEventListener('click', function() {
-            let userId = this.getAttribute('data-id'); // Get user ID
-            document.getElementById('confirm-delete').setAttribute('data-id', userId); // Store in modal
+            let topicNumber = this.getAttribute('data-id');
+            document.getElementById('confirm-delete').setAttribute('data-id', topicNumber);
         });
     });
 
     document.getElementById('confirm-delete').addEventListener('click', function() {
-        let userId = this.getAttribute('data-id'); // Retrieve stored ID
-        let topik = this.getAttribute('data-topik'); // Retrieve stored topik
-        window.location.href = '../backend/topicBE.php?delete-id=' + userId + '&topik=' + topik; // Redirect with both ID and topik
+        let topicNumber = this.getAttribute('data-id');
+        window.location.href = '../backend/topicBE.php?delete-id=' + encodeURIComponent(topicNumber);
             
     });
 
